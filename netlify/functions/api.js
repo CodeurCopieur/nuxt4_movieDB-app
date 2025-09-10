@@ -1,0 +1,94 @@
+const { TMDB_API_KEY, TMDB_BASE_URL } = process.env;
+
+exports.handler = async (event, context) => {
+  // Configuration CORS
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
+  };
+
+  // Gérer les requêtes OPTIONS pour CORS
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
+
+  try {
+    const path = event.path;
+    const { page = '1', sort_by = 'popularity.desc' } = event.queryStringParameters || {};
+    
+    const apiKey = TMDB_API_KEY;
+    const baseURL = TMDB_BASE_URL || 'https://api.themoviedb.org/3/';
+    
+    let endpoint = '';
+    
+    // Déterminer l'endpoint TMDB basé sur le chemin
+    if (path.includes('/movies/popular')) {
+      endpoint = `${baseURL}movie/popular`;
+    } else if (path.includes('/movies/now-playing')) {
+      endpoint = `${baseURL}movie/now_playing`;
+    } else if (path.includes('/movies/top-rated')) {
+      endpoint = `${baseURL}movie/top_rated`;
+    } else if (path.includes('/movies/discover')) {
+      endpoint = `${baseURL}discover/movie`;
+    } else {
+      return {
+        statusCode: 404,
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          error: 'Endpoint non trouvé'
+        })
+      };
+    }
+    
+    // Construire l'URL avec les paramètres
+    const url = new URL(endpoint);
+    url.searchParams.set('api_key', apiKey);
+    url.searchParams.set('page', page);
+    url.searchParams.set('include_adult', 'false');
+    
+    if (path.includes('/movies/discover')) {
+      url.searchParams.set('sort_by', sort_by);
+    }
+    
+    console.log('Fetching:', url.toString());
+    
+    const response = await fetch(url.toString());
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    return {
+      statusCode: 200,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    
+    return {
+      statusCode: 500,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        error: 'Erreur lors de la récupération des données',
+        details: error.message
+      })
+    };
+  }
+};
