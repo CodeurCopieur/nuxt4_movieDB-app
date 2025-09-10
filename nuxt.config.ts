@@ -50,6 +50,5 @@ export default defineNuxtConfig({
       // Pas de clé API exposée côté client
     }
   },
-  tailwindcss: { viewer: false },
-  experimental: { payloadExtraction: true }
+  tailwindcss: { viewer: false }
 })
