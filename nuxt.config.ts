@@ -2,7 +2,13 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-    modules: [
+  
+  // Configuration pour Netlify avec SSR activé pour les API routes
+  nitro: {
+    preset: 'netlify'
+  },
+  
+  modules: [
     '@nuxtjs/tailwindcss', 
     'nuxt-swiper'
   ],
@@ -14,14 +20,15 @@ export default defineNuxtConfig({
     proxy: true,
   },
   runtimeConfig: {
-    public: {
-      tmdbBaseURL: "https://api.themoviedb.org/3/",
-      tmdbApiKey: process.env.TMDB_API_KEY || "your_default_api_key",
-    },
+    // Variables privées côté serveur uniquement
+    tmdbApiKey: process.env.TMDB_API_KEY || "your_default_api_key",
+    tmdbBaseURL: "https://api.themoviedb.org/3/",
     
+    // Variables publiques côté client
+    public: {
+      // Pas de clé API exposée côté client
+    }
   },
   tailwindcss: { viewer: false },
   experimental: { payloadExtraction: true }
-
-
 })
