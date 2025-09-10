@@ -5,7 +5,17 @@ export default defineNuxtConfig({
   
   // Configuration pour Netlify avec SSR activé pour les API routes
   nitro: {
-    preset: 'netlify'
+    preset: 'netlify',
+    experimental: {
+      wasm: false
+    }
+  },
+  
+  // Configuration pour éviter les problèmes de dépendances natives
+  vite: {
+    optimizeDeps: {
+      exclude: ['oxc-parser']
+    }
   },
   
   modules: [
