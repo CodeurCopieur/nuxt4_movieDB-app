@@ -1,14 +1,15 @@
-<script setup lang="ts">
+<script setup>
 import { onMounted } from 'vue'
 
-const { getPopularMovies, getNowPlayingMovies } = useMoviesApi();
+const { getPopularMovies, getDetails, search, credits }  = useMoviesApi();
 
 onMounted(async () => {
   try {
-    const popularMovies = await getPopularMovies()
-    const nowPopularMovies = await getNowPlayingMovies()
-    console.log('Popular Movies:', popularMovies)
-    console.log('Now Popular Movies:', nowPopularMovies)
+   
+   // Utilisation identique à l'ancien composable
+   const movies = await getPopularMovies(1);
+   console.log(movies)
+
   } catch (error) {
     console.error('Error fetching popular movies:', error)
   }
