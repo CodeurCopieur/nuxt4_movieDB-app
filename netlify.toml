@@ -14,7 +14,7 @@
 # Redirections pour les API routes
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "/.netlify/functions/server"
   status = 200
 
 # Redirections SPA pour les routes client
