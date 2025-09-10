@@ -12,7 +12,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "netlify:build": "npm ci && nuxt build"
+    "netlify:build": "npm ci --omit=optional && nuxt build"
   },
   "dependencies": {
     "axios": "^1.11.0",

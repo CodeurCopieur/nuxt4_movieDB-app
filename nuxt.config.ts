@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   // Configuration pour éviter les problèmes de dépendances natives
   vite: {
     optimizeDeps: {
-      exclude: ['oxc-parser']
+      exclude: ['oxc-parser', '@oxc-parser/binding-linux-x64-gnu']
     },
     build: {
       target: 'es2022'
@@ -22,6 +22,11 @@ export default defineNuxtConfig({
     esbuild: {
       target: 'es2022'
     }
+  },
+  
+  // Configuration expérimentale pour éviter les problèmes oxc-parser
+  experimental: {
+    payloadExtraction: true
   },
   
   modules: [
