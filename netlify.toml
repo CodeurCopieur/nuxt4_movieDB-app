@@ -13,8 +13,23 @@
 
 # Redirections pour les API routes
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/server"
+  from = "/api/movies/popular"
+  to = "/.netlify/functions/movies-popular"
+  status = 200
+
+[[redirects]]
+  from = "/api/movies/now-playing"
+  to = "/.netlify/functions/movies-now-playing"
+  status = 200
+
+[[redirects]]
+  from = "/api/movies/top-rated"
+  to = "/.netlify/functions/movies-top-rated"
+  status = 200
+
+[[redirects]]
+  from = "/api/movies/discover"
+  to = "/.netlify/functions/movies-discover"
   status = 200
 
 # Redirections SPA pour les routes client
