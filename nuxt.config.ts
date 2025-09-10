@@ -15,6 +15,9 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: {
       exclude: ['oxc-parser']
+    },
+    build: {
+      target: 'es2022'
     }
   },
   
