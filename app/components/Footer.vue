@@ -4,13 +4,13 @@
       <h4 class="md:mb-4 mb-6">© 2023 Empire Movies Nuxt3.Tous droits réservés</h4>
       <div class="flex md:mb-4 mb-6 text-sm">
         <span>Made With</span>
-        <NuxtLink class="ml-2 border-b-2 border-white-800" to="https://v3.nuxtjs.org/" target="_blank"
-          aria-label="Nuxt 3">Nuxt 3</NuxtLink>
+        <NuxtLink class="ml-2 border-b-2 border-white-800" to="https://nuxt.com/" target="_blank"
+          aria-label="Nuxt 4">Nuxt 4</NuxtLink>
       </div>
       <div class="flex flex-wrap md:mb-4 mb-6 text-sm">
         <span>Data provided by</span>
         <NuxtLink class="pl-0 ml-2 border-b-2 border-white-800" to="https://www.themoviedb.org/" target="_blank"
-          aria-label="Nuxt 3">The Movie Database</NuxtLink>
+          aria-label="Nuxt 4">The Movie Database</NuxtLink>
       </div>
       <nav class="flex justify-start md:mb-4 mb-6 text-sm">
         <ul class="flex flex-wrap flex-row gap-2.5 md:gap-4 ">
