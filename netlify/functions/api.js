@@ -1,6 +1,14 @@
 const { TMDB_API_KEY, TMDB_BASE_URL } = process.env;
 
 exports.handler = async (event, context) => {
+  console.log('API Function called:', {
+    path: event.path,
+    method: event.httpMethod,
+    query: event.queryStringParameters,
+    hasApiKey: !!TMDB_API_KEY,
+    hasBaseUrl: !!TMDB_BASE_URL
+  });
+
   // Configuration CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -14,6 +22,21 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       headers,
       body: ''
+    };
+  }
+
+  // Vérifier si la clé API est présente
+  if (!TMDB_API_KEY) {
+    console.error('TMDB_API_KEY not found in environment variables');
+    return {
+      statusCode: 500,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        error: 'Configuration manquante: TMDB_API_KEY non définie'
+      })
     };
   }
 
@@ -43,7 +66,9 @@ exports.handler = async (event, context) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          error: 'Endpoint non trouvé'
+          error: 'Endpoint non trouvé',
+          path: path,
+          availableEndpoints: ['/movies/popular', '/movies/now-playing', '/movies/top-rated', '/movies/discover']
         })
       };
     }
@@ -58,15 +83,17 @@ exports.handler = async (event, context) => {
       url.searchParams.set('sort_by', sort_by);
     }
     
-    console.log('Fetching:', url.toString());
+    console.log('Fetching TMDB API:', url.toString());
     
     const response = await fetch(url.toString());
     
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+      throw new Error(`TMDB API Error: ${response.status} - ${response.statusText}`);
     }
     
     const data = await response.json();
+    
+    console.log('Successfully fetched data from TMDB');
     
     return {
       statusCode: 200,
@@ -77,7 +104,7 @@ exports.handler = async (event, context) => {
       body: JSON.stringify(data)
     };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('API Error:', error);
     
     return {
       statusCode: 500,
@@ -87,7 +114,8 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         error: 'Erreur lors de la récupération des données',
-        details: error.message
+        details: error.message,
+        path: event.path
       })
     };
   }

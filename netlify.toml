@@ -11,6 +11,12 @@
 [functions]
   directory = ".netlify/functions"
 
+# Test de la fonction Netlify
+[[redirects]]
+  from = "/test"
+  to = "/.netlify/functions/test"
+  status = 200
+
 # Redirections pour les API routes
 [[redirects]]
   from = "/api/*"
