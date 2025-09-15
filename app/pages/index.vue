@@ -1,15 +1,14 @@
 <script setup>
 import { onMounted } from 'vue'
 
-const { getPopularMovies, getDetails, search, credits }  = useMoviesApi();
+const { getMovies }  = useMoviesApi();
+const allMovies = ref([]);
 
 onMounted(async () => {
   try {
-   
-   // Utilisation identique à l'ancien composable
-   const movies = await getPopularMovies(1);
-   console.log(movies)
 
+   allMovies.value = await getMovies('now_playing', 1);
+   
   } catch (error) {
     console.error('Error fetching popular movies:', error)
   }
@@ -18,7 +17,7 @@ onMounted(async () => {
 
 
 <template>
-  <div id="app" class="min-h-screen">
-       salut
+  <div>
+    <Hero :movies="allMovies" type="movie" />
   </div>
 </template>

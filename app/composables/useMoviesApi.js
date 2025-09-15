@@ -257,14 +257,23 @@ export const useMoviesApi = () => {
 
   // Fonction req compatible (pour compatibilité)
   const req = async (get, page, option) => {
+    // Mapper les noms d'endpoints pour correspondre aux fichiers serveur
+    const endpointMap = {
+      'now_playing': 'now-playing',
+      'top_rated': 'top-rated',
+      'person_credits': 'person-credits'
+    };
+    
+    const endpoint = endpointMap[get] || get;
+    
     if (page) {
       const query = page.includes('page=') ? page : `&page=${page}`;
-      const response = await $fetch(`/api/movies/${get}`, {
+      const response = await $fetch(`/api/movies/${endpoint}`, {
         query: { page: query.replace('&page=', '') }
       });
       return response.results;
     } else {
-      const response = await $fetch(`/api/movies/${get}`);
+      const response = await $fetch(`/api/movies/${endpoint}`);
       return response.results;
     }
   };
