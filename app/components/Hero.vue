@@ -8,7 +8,7 @@
     const genres = getGenresState.genres;
    
     const activeSlideIndex = ref(0);
-    const containerRef = ref(null);
+    const swiperInstance = ref(null);
     
     const getTitle = (arrayId) => {
         const filteredObjects = computed(() => genres.filter(obj => arrayId.includes(obj.id)));
@@ -30,48 +30,9 @@
         return `${baseUrl}${imageSize[size]}${optimizedPath}`;
     };
 
-    // Configuration du slider Swiper
-    const swiper = useSwiper(containerRef, {
-        spaceBetween: 0,
-        loop: true,
-        autoplay: {
-            delay: 8000,
-            disableOnInteraction: false
-        },
-        pagination: {
-            clickable: true,
-            dynamicBullets: true
-        },
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev'
-        },
-        on: {
-            slideChange: (swiper) => {
-                // Corriger l'index pour le mode loop avec vérifications
-                const realIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
-                const activeIndex = swiper.activeIndex !== undefined ? swiper.activeIndex : 0;
-                
-                console.log('Slide changé vers:', realIndex, '(index réel)');
-                console.log('Active index:', activeIndex, '(index actif)');
-                console.log('Swiper object:', swiper);
-                
-                // Utiliser realIndex si disponible, sinon activeIndex
-                activeSlideIndex.value = realIndex !== undefined ? realIndex : activeIndex;
-            },
-            init: (swiper) => {
-                console.log('Swiper initialisé:', swiper);
-                const realIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
-                activeSlideIndex.value = realIndex !== undefined ? realIndex : 0;
-            }
-        }
-    });
-
     // Fonction pour changer de slide depuis les miniatures
     const goToSlide = (index) => {
         console.log('Clic sur miniature:', index);
-        console.log('Swiper instance:', swiper.instance);
-        console.log('Container ref:', containerRef.value);
         
         // Vérifier que l'index est valide
         if (index < 0 || index >= movies.length) {
@@ -79,76 +40,97 @@
             return;
         }
         
-        // Méthode 1: Via l'instance swiper
-        if (swiper.instance && typeof swiper.instance.slideToLoop === 'function') {
-            console.log('Utilisation de slideToLoop via instance');
-            // Désactiver l'autoplay temporairement
-            if (swiper.instance.autoplay && swiper.instance.autoplay.stop) {
-                swiper.instance.autoplay.stop();
-            }
-            // Aller au slide spécifique en utilisant slideToLoop pour le mode loop
-            swiper.instance.slideToLoop(index, 500);
-            // Réactiver l'autoplay après 2 secondes
-            setTimeout(() => {
-                if (swiper.instance.autoplay && swiper.instance.autoplay.start) {
-                    swiper.instance.autoplay.start();
+        if (swiperInstance.value) {
+            try {
+                // Désactiver l'autoplay temporairement
+                if (swiperInstance.value.autoplay) {
+                    swiperInstance.value.autoplay.stop();
                 }
-            }, 2000);
-        } 
-        // Méthode 2: Via slideTo si slideToLoop n'existe pas
-        else if (swiper.instance && typeof swiper.instance.slideTo === 'function') {
-            console.log('Utilisation de slideTo via instance');
-            if (swiper.instance.autoplay && swiper.instance.autoplay.stop) {
-                swiper.instance.autoplay.stop();
+                
+                // Aller au slide spécifique
+                swiperInstance.value.slideToLoop(index, 500);
+                
+                // Réactiver l'autoplay après 3 secondes
+                setTimeout(() => {
+                    if (swiperInstance.value.autoplay) {
+                        swiperInstance.value.autoplay.start();
+                    }
+                }, 3000);
+            } catch (error) {
+                console.error('Erreur avec swiper:', error);
             }
-            swiper.instance.slideTo(index, 500);
-            setTimeout(() => {
-                if (swiper.instance.autoplay && swiper.instance.autoplay.start) {
-                    swiper.instance.autoplay.start();
-                }
-            }, 2000);
-        }
-        // Méthode 3: Via le conteneur directement
-        else if (containerRef.value && containerRef.value.swiper) {
-            console.log('Utilisation du conteneur direct');
-            if (typeof containerRef.value.swiper.slideToLoop === 'function') {
-                containerRef.value.swiper.slideToLoop(index, 500);
-            } else if (typeof containerRef.value.swiper.slideTo === 'function') {
-                containerRef.value.swiper.slideTo(index, 500);
-            }
-        }
-        else {
-            console.error('Aucune méthode de navigation disponible');
-            console.log('État des objets:', {
-                hasInstance: !!swiper.instance,
-                hasContainer: !!containerRef.value,
-                instanceMethods: swiper.instance ? Object.keys(swiper.instance) : 'N/A'
-            });
+        } else {
+            console.error('Swiper instance non disponible');
         }
     };
 
     onMounted(() => {
-        console.log('Swiper instance montée:', swiper.instance);
-        // Attendre que le swiper soit complètement initialisé
+        // Attendre que le DOM soit prêt
         nextTick(() => {
-            if (swiper.instance) {
-                console.log('Swiper prêt:', swiper.instance);
-                console.log('Méthodes disponibles:', Object.keys(swiper.instance));
-            }
-            
-            // Vérifier aussi le conteneur
-            if (containerRef.value) {
-                console.log('Container ref disponible:', containerRef.value);
-                console.log('Container swiper:', containerRef.value.swiper);
-            }
+            // Utiliser une approche plus simple avec setTimeout
+            setTimeout(async () => {
+                try {
+                    // Importer Swiper avec une approche différente
+                    const SwiperModule = await import('swiper');
+                    const Swiper = SwiperModule.default;
+                    
+                    // Importer les modules
+                    const AutoplayModule = await import('swiper/modules');
+                    const PaginationModule = await import('swiper/modules');
+                    const NavigationModule = await import('swiper/modules');
+                    
+                    const Autoplay = AutoplayModule.Autoplay;
+                    const Pagination = PaginationModule.Pagination;
+                    const Navigation = NavigationModule.Navigation;
+                    
+                    // Initialiser Swiper
+                    swiperInstance.value = new Swiper('.swiper-container', {
+                        spaceBetween: 0,
+                        loop: true,
+                        autoplay: {
+                            delay: 8000,
+                            disableOnInteraction: false
+                        },
+                        pagination: {
+                            el: '.swiper-pagination',
+                            clickable: true,
+                            dynamicBullets: true
+                        },
+                        navigation: {
+                            nextEl: '.swiper-button-next',
+                            prevEl: '.swiper-button-prev'
+                        },
+                        modules: [Autoplay, Pagination, Navigation],
+                        on: {
+                            slideChange: (swiper) => {
+                                const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                                console.log('Slide changé vers:', currentIndex);
+                                activeSlideIndex.value = currentIndex;
+                            },
+                            init: (swiper) => {
+                                console.log('Swiper initialisé');
+                                const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                                activeSlideIndex.value = currentIndex;
+                            }
+                        }
+                    });
+                    
+                    console.log('Swiper initialisé avec succès');
+                } catch (error) {
+                    console.error('Erreur lors de l\'initialisation de Swiper:', error);
+                    console.log('Détails de l\'erreur:', error);
+                }
+            }, 100); // Petit délai pour s'assurer que le DOM est prêt
         });
     });
 </script>
 <template>
     <div class="relative h-screen min-h-[600px] overflow-hidden">
         <ClientOnly>
-            <swiper-container ref="containerRef" :init="false" class="h-full w-full">
-                <swiper-slide v-for="(movie, i) in movies" :key="i" class="relative h-screen min-h-[600px] overflow-hidden">
+            <div class="swiper-container h-full w-full">
+                <div class="swiper-wrapper">
+                    <div v-for="(movie, i) in movies" :key="i" class="swiper-slide">
+                        <div class="relative w-full h-screen min-h-[600px] overflow-hidden">
                     <!-- Image de fond avec effet parallax -->
                     <div class="absolute inset-0 z-0">
                         <picture class="w-full h-full">
@@ -203,11 +185,11 @@
                                     <!-- Note avec style premium -->
                                     <div class="flex items-center space-x-4">
                                         <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
-                                            <div class="flex">
+                                            <!-- <div class="flex">
                                                 <span v-for="star in 5" :key="star" 
                                                     :class="getStarClass(star, movie.vote_average)"
                                                     class="text-lg">{{ getStarSymbol(star, movie.vote_average) }}</span>
-                                            </div>
+                                            </div> -->
                                             <span class="text-white font-semibold">{{ movie.vote_average.toFixed(1) }}</span>
                                         </div>
                                         <div class="text-white/70 text-sm">
@@ -259,13 +241,22 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </swiper-slide>
-            </swiper-container>
+                         </div>
+                     </div>
+                     </div>
+                 </div>
+                 
+                 <!-- Pagination -->
+                <div class="swiper-pagination"></div>
+                
+                <!-- Navigation -->
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
             
             <!-- Miniatures (Thumbs) avec design moderne -->
-            <div class="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-md">
-                <div class="container-2xl mx-auto px-4 py-6">
+            <div class="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/95 via-black/80">
+                <div class="container-2xl mx-auto px-4 pt-6 pb-10">
                     <!-- Titre des miniatures -->
                     <div class="text-center mb-4">
                         <h3 class="text-white/90 text-sm font-medium tracking-wider uppercase">Sélectionnez un film</h3>
@@ -273,7 +264,7 @@
                     </div>
                     
                     <!-- Conteneur des miniatures - prend toute la largeur -->
-                    <div class="flex justify-center items-center space-x-2 overflow-x-auto scrollbar-hide">
+                    <div class="flex justify-center items-center space-x-2">
                         <div 
                             v-for="(movie, index) in movies" 
                             :key="index"
@@ -416,8 +407,29 @@
   color: #CCC;
 }
 
-/* Styles Swiper modernes */
-swiper-slide {
+/* Styles Swiper essentiels */
+.swiper-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.swiper-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: flex;
+  transition-property: transform;
+  box-sizing: content-box;
+}
+
+.swiper-slide {
+  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition-property: transform;
   display: flex;
   justify-content: center;
   align-items: center;
