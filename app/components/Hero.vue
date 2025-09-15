@@ -48,13 +48,61 @@
         },
         on: {
             slideChange: (swiper) => {
-                activeSlideIndex.value = swiper.activeIndex;
+                // Corriger l'index pour le mode loop
+                const realIndex = swiper.realIndex;
+                console.log('Slide changé vers:', realIndex, '(index réel)');
+                console.log('Active index:', swiper.activeIndex, '(index actif)');
+                activeSlideIndex.value = realIndex;
+            },
+            init: (swiper) => {
+                console.log('Swiper initialisé:', swiper);
+                activeSlideIndex.value = swiper.realIndex;
             }
         }
     });
 
+    // Fonction pour changer de slide depuis les miniatures
+    const goToSlide = (index) => {
+        console.log('Clic sur miniature:', index);
+        console.log('Swiper instance:', swiper.instance);
+        console.log('Container ref:', containerRef.value);
+        
+        // Méthode 1: Via l'instance swiper
+        if (swiper.instance && swiper.instance.slideTo) {
+            // Désactiver l'autoplay temporairement
+            swiper.instance.autoplay.stop();
+            // Aller au slide spécifique en utilisant slideToLoop pour le mode loop
+            swiper.instance.slideToLoop(index, 500);
+            // Réactiver l'autoplay après 2 secondes
+            setTimeout(() => {
+                if (swiper.instance.autoplay) {
+                    swiper.instance.autoplay.start();
+                }
+            }, 2000);
+        } 
+        // Méthode 2: Via le conteneur directement
+        else if (containerRef.value && containerRef.value.swiper) {
+            console.log('Utilisation du conteneur direct');
+            containerRef.value.swiper.slideToLoop(index, 500);
+        }
+        // Méthode 3: Via l'API native du swiper-container
+        else if (containerRef.value) {
+            console.log('Utilisation de l\'API native');
+            containerRef.value.swiper.slideToLoop(index, 500);
+        }
+        else {
+            console.error('Aucune méthode de navigation disponible');
+        }
+    };
+
     onMounted(() => {
-        console.log(swiper.instance)
+        console.log('Swiper instance montée:', swiper.instance);
+        // Attendre que le swiper soit complètement initialisé
+        nextTick(() => {
+            if (swiper.instance) {
+                console.log('Swiper prêt:', swiper.instance);
+            }
+        });
     });
 </script>
 <template>
@@ -175,6 +223,87 @@
                     </div>
                 </swiper-slide>
             </swiper-container>
+            
+            <!-- Miniatures (Thumbs) avec design moderne -->
+            <div class="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-md">
+                <div class="container-2xl mx-auto px-4 py-6">
+                    <!-- Titre des miniatures -->
+                    <div class="text-center mb-4">
+                        <h3 class="text-white/90 text-sm font-medium tracking-wider uppercase">Sélectionnez un film</h3>
+                    </div>
+                    
+                    <!-- Conteneur des miniatures - prend toute la largeur -->
+                    <div class="flex justify-center items-center space-x-2 overflow-x-auto scrollbar-hide">
+                        <div 
+                            v-for="(movie, index) in movies" 
+                            :key="index"
+                            @click="goToSlide(index)"
+                            class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105"
+                            :class="{ 'scale-110': index === activeSlideIndex }">
+                            
+                            <!-- Conteneur de la miniature -->
+                            <div class="relative">
+                                <!-- Image miniature -->
+                                <div class="relative overflow-hidden rounded-xl transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-blue-500/30">
+                                    <img 
+                                        :src="generateOptimizedImageUrl(movie.poster_path, 'small')"
+                                        :alt="movie.original_title"
+                                        class="w-20 h-28 sm:w-24 sm:h-32 md:w-28 md:h-36 object-cover transition-all duration-500"
+                                        :class="{ 
+                                            'opacity-60 brightness-75': index !== activeSlideIndex,
+                                            'opacity-100 brightness-100': index === activeSlideIndex
+                                        }">
+                                    
+                                    <!-- Overlay de sélection -->
+                                    <div 
+                                        v-if="index === activeSlideIndex"
+                                        class="absolute inset-0 bg-gradient-to-t from-blue-600/80 via-blue-500/20 to-transparent rounded-xl">
+                                    </div>
+                                    
+                                    <!-- Bordure animée pour la miniature active -->
+                                    <div 
+                                        v-if="index === activeSlideIndex"
+                                        class="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl opacity-75 animate-pulse">
+                                        <div class="absolute inset-0.5 bg-black/20 backdrop-blur-sm rounded-lg"></div>
+                                    </div>
+                                    
+                                    <!-- Icône play sur hover -->
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        <div class="bg-white/20 backdrop-blur-sm rounded-full p-2 transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Indicateur de progression (barre en bas) -->
+                                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-xl overflow-hidden">
+                                        <div 
+                                            v-if="index === activeSlideIndex"
+                                            class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-b-xl animate-pulse">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Note du film en overlay -->
+                                <div class="absolute top-1 right-1 bg-black/80 backdrop-blur-sm text-white text-xs px-1.5 py-0.5 rounded-full border border-white/20">
+                                    <span class="flex items-center space-x-1">
+                                        <span class="text-yellow-400 text-xs">★</span>
+                                        <span class="font-medium">{{ movie.vote_average.toFixed(1) }}</span>
+                                    </span>
+                                </div>
+                                
+                                <!-- Titre du film avec style moderne -->
+                                <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                    <div class="bg-black/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-full whitespace-nowrap border border-white/20 shadow-lg max-w-28">
+                                        <span class="truncate block">{{ movie.title || movie.name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </ClientOnly>
     </div>
 </template>
@@ -319,10 +448,77 @@ swiper-slide {
   transition: transform 20s ease-out;
 }
 
+/* Styles pour les miniatures (Thumbs) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animation pour les miniatures actives */
+.group:hover .group-hover\:scale-105 {
+  transform: scale(1.05);
+}
+
+/* Effet de glow pour la miniature active */
+.group.scale-110::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  border-radius: 16px;
+  z-index: -1;
+  animation: border-glow 3s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes border-glow {
+  0% {
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  }
+  25% {
+    background: linear-gradient(45deg, #8b5cf6, #ec4899, #3b82f6, #8b5cf6);
+  }
+  50% {
+    background: linear-gradient(45deg, #ec4899, #3b82f6, #8b5cf6, #ec4899);
+  }
+  75% {
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  }
+  100% {
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .animate-fade-in-right {
     animation: fadeInUp 0.8s ease-out 0.2s both;
+  }
+  
+  /* Ajustements pour les miniatures sur mobile */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .space-x-2 > * + * {
+    margin-left: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Miniatures plus petites sur très petits écrans */
+  .w-20.h-28 {
+    width: 4rem;
+    height: 5.5rem;
+  }
+  
+  .space-x-2 > * + * {
+    margin-left: 0.25rem;
   }
 }
 </style>
