@@ -58,14 +58,15 @@
     });
 </script>
 <template>
-    <div class="component-app__wrap-sliderHero relative">
+    <div class="relative h-screen min-h-[600px]">
         <ClientOnly>
-            <swiper-container ref="containerRef" :init="false" class="h-max w-full component-app__wrap-slider">
-                <swiper-slide v-for="(movie, i) in movies" :key="i" class="component-app__wrap-slideHero relative">
-                    <div class="absolute z-10 h-full slide-content">
+            <swiper-container ref="containerRef" :init="false" class="h-full w-full">
+                <swiper-slide v-for="(movie, i) in movies" :key="i" class="relative h-screen min-h-[600px] overflow-hidden">
+                    <!-- Contenu du slide -->
+                    <div class="absolute z-10 h-full w-full">
                         <div class="w-full md:min-w-3xl md:max-w-3xl xl:pl-40 p-0 h-full flex items-center md:mr-auto md:ml-0 mx-auto">
                             <div class="px-6">
-                                <h3 class="text-lg lg:text-4xl font-extrabold mb-3 lg:mb-5" :aria-label="movie.original_title">{{ movie.title || movie.name}}</h3>
+                                <h3 class="text-lg lg:text-4xl font-extrabold mb-3 lg:mb-5 text-white" :aria-label="movie.original_title">{{ movie.title || movie.name}}</h3>
                                 
                                 <ul class="flex flex-wrap mb-6">
                                     <li 
@@ -74,14 +75,14 @@
                                         :class="{ 'mr-1' : j != getTitle(movie.genre_ids).length -1  }"> 
                                         <NuxtLink 
                                             :to="{query: {type: type , name: title.name.toLowerCase()}, path:`/genres/${title.id}`}"
-                                            class="text-sm lg:text-base"
+                                            class="text-sm lg:text-base text-white hover:text-blue-300 transition-colors"
                                             role="link">{{ title.name }}</NuxtLink>
                                     </li>
                                 </ul>
                                 
-                                <div class="precent-bar mb-6">
-                                    <span class="precent-per flex">
-                                        <span class="stars mr-3">
+                                <div class="mb-6">
+                                    <span class="flex">
+                                        <span class="mr-3">
                                             <span v-for="star in 5" :key="star" 
                                                 :class="getStarClass(star, movie.vote_average)"
                                                 class="text-xl">{{ getStarSymbol(star, movie.vote_average) }}</span>
@@ -89,24 +90,26 @@
                                     </span>
                                 </div>
 
-                                <p class="text-sm lg:text-base leading-normal mb-6" :aria-label="movie.overview.substring(0,200)+'...'">{{ movie.overview.substring(0,200)+".." }}</p>
+                                <p class="text-sm lg:text-base leading-normal mb-6 text-white" :aria-label="movie.overview.substring(0,200)+'...'">{{ movie.overview.substring(0,200)+".." }}</p>
                                 <a 
-                                    :href="`${type}/${movie.id}`" class="inline-block py-1 px-3 md:px-6 text-sm lg:text-base border-b-4 border-blue-800"
+                                    :href="`${type}/${movie.id}`" class="inline-block py-1 px-3 md:px-6 text-sm lg:text-base border-b-4 border-blue-800 text-white hover:text-blue-300 transition-colors"
                                     aria-label="En savoir plus sur le film">
                                     <span>PLUS</span>
                                 </a>
                             </div>
                         </div>
                     </div>
-                        
-                    <div class="component-app__aspect-ratio"></div>
-                    <div class="component-app__linear-black"></div>
-                    <picture>
+                    
+                    <!-- Overlay gradient -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10 z-[1]"></div>
+                    
+                    <!-- Image de fond -->
+                    <picture class="absolute inset-0 z-0">
                         <source :srcset="generateOptimizedImageUrl(movie.backdrop_path, 'original')" media="(min-width: 768px)" sizes="100vw">
                         <source :srcset="generateOptimizedImageUrl(movie.backdrop_path, 'medium')" media="(min-width: 480px) and (max-width: 768px)" sizes="50vw">
                         <source :srcset="generateOptimizedImageUrl(movie.poster_path, 'small')" media="(max-width: 480px)" sizes="100vw">
                         <img 
-                            class="swiper-lazy" 
+                            class="w-full h-full object-cover" 
                             :src="generateOptimizedImageUrl(movie.poster_path, 'small')"
                             :alt="movie.original_title"
                             loading="lazy">
@@ -118,134 +121,54 @@
 </template>
 
 <style>
-.component-app__wrap-sliderHero {
-  height: 100vh;
-  min-height: 600px;
-}
-
-.component-app__wrap-slider {
-  height: 100%;
-  width: 100%;
-}
-
-.component-app__wrap-slideHero {
-  height: 100vh;
-  min-height: 600px;
-  position: relative;
-  overflow: hidden;
-}
-
-.component-app__aspect-ratio {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.component-app__linear-black {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.8) 0%,
-    rgba(0, 0, 0, 0.4) 50%,
-    rgba(0, 0, 0, 0.1) 100%
-  );
-  z-index: 1;
-}
-
-.slide-content {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.75s ease, transform 0.75s ease;
-  z-index: 10;
-}
-
-.component-app__wrap-slideHero picture {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-.component-app__wrap-slideHero img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+/* Styles pour les étoiles (nécessaires car ils utilisent des classes dynamiques) */
 .stars {
-  color: #FFD700; /* Couleur des étoiles jaunes */
+  color: #FFD700;
 }
 
 .star-empty {
-  color: #CCC; /* Couleur de l'étoile sans couleur */
+  color: #CCC;
 }
 
-/* Styles pour la pagination et navigation Swiper */
+/* Styles Swiper - seulement les styles personnalisés nécessaires */
 swiper-slide {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  min-height: 600px;
 }
 
 .swiper-pagination-bullet {
-  background: rgba(255, 255, 255, 0.5);
-  width: 12px;
-  height: 12px;
-  margin: 0 6px;
-  transition: all 0.3s ease;
+  @apply bg-white/50 w-3 h-3 mx-1.5 transition-all duration-300;
 }
 
 .swiper-pagination-bullet-active {
-  background: #fff;
-  transform: scale(1.2);
+  @apply bg-white scale-110;
 }
 
 .swiper-pagination {
-  bottom: 30px !important;
-  z-index: 20;
+  @apply bottom-8 z-20;
 }
 
 .swiper-button-next,
 .swiper-button-prev {
-  color: #fff;
-  background: rgba(0, 0, 0, 0.3);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-  z-index: 20;
+  @apply text-white bg-black/30 w-12 h-12 rounded-full transition-all duration-300 z-20;
 }
 
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
-  background: rgba(0, 0, 0, 0.6);
-  transform: scale(1.1);
+  @apply bg-black/60 scale-110;
 }
 
 .swiper-button-next:after,
 .swiper-button-prev:after {
-  font-size: 20px;
-  font-weight: bold;
+  @apply text-xl font-bold;
 }
 
 .swiper-button-next {
-  right: 30px;
+  @apply right-8;
 }
 
 .swiper-button-prev {
-  left: 30px;
+  @apply left-8;
 }
 </style>
