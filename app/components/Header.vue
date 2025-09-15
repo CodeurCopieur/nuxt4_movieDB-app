@@ -1,7 +1,7 @@
 <template>
   <header class="fixed header lg:pl-5 pl-0">
     <nav class="nav lg:w-20 w-screen lg:min-w-0 h-16 min-h-0 lg:min-h-screen text-white-500 flex justify-center items-center">
-      <ul class="flex flex-row lg:flex-col lg:p-0 py-4">
+      <ul class="flex flex-row lg:flex-col lg:p-0 py-4 rounded-xl">
         <li class="lg:my-5 mx-5 px-4 py-2 rounded-lg bg-gradient-to-r from-gray-500/20 to-slate-500/20 border border-gray-500/30 text-gray-300 hover:text-gray-200 hover:border-gray-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/30 backdrop-blur-sm hover:scale-105">
           <NuxtLink to="/" aria-label="Accueil">
             <svg fill="currentColor" viewBox="0 0 24 24" width="24" height="24" alt="Icône d'accueil">
