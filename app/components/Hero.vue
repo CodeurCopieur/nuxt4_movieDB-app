@@ -48,15 +48,21 @@
         },
         on: {
             slideChange: (swiper) => {
-                // Corriger l'index pour le mode loop
-                const realIndex = swiper.realIndex;
+                // Corriger l'index pour le mode loop avec vérifications
+                const realIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                const activeIndex = swiper.activeIndex !== undefined ? swiper.activeIndex : 0;
+                
                 console.log('Slide changé vers:', realIndex, '(index réel)');
-                console.log('Active index:', swiper.activeIndex, '(index actif)');
-                activeSlideIndex.value = realIndex;
+                console.log('Active index:', activeIndex, '(index actif)');
+                console.log('Swiper object:', swiper);
+                
+                // Utiliser realIndex si disponible, sinon activeIndex
+                activeSlideIndex.value = realIndex !== undefined ? realIndex : activeIndex;
             },
             init: (swiper) => {
                 console.log('Swiper initialisé:', swiper);
-                activeSlideIndex.value = swiper.realIndex;
+                const realIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                activeSlideIndex.value = realIndex !== undefined ? realIndex : 0;
             }
         }
     });
@@ -67,31 +73,57 @@
         console.log('Swiper instance:', swiper.instance);
         console.log('Container ref:', containerRef.value);
         
+        // Vérifier que l'index est valide
+        if (index < 0 || index >= movies.length) {
+            console.error('Index invalide:', index);
+            return;
+        }
+        
         // Méthode 1: Via l'instance swiper
-        if (swiper.instance && swiper.instance.slideTo) {
+        if (swiper.instance && typeof swiper.instance.slideToLoop === 'function') {
+            console.log('Utilisation de slideToLoop via instance');
             // Désactiver l'autoplay temporairement
-            swiper.instance.autoplay.stop();
+            if (swiper.instance.autoplay && swiper.instance.autoplay.stop) {
+                swiper.instance.autoplay.stop();
+            }
             // Aller au slide spécifique en utilisant slideToLoop pour le mode loop
             swiper.instance.slideToLoop(index, 500);
             // Réactiver l'autoplay après 2 secondes
             setTimeout(() => {
-                if (swiper.instance.autoplay) {
+                if (swiper.instance.autoplay && swiper.instance.autoplay.start) {
                     swiper.instance.autoplay.start();
                 }
             }, 2000);
         } 
-        // Méthode 2: Via le conteneur directement
+        // Méthode 2: Via slideTo si slideToLoop n'existe pas
+        else if (swiper.instance && typeof swiper.instance.slideTo === 'function') {
+            console.log('Utilisation de slideTo via instance');
+            if (swiper.instance.autoplay && swiper.instance.autoplay.stop) {
+                swiper.instance.autoplay.stop();
+            }
+            swiper.instance.slideTo(index, 500);
+            setTimeout(() => {
+                if (swiper.instance.autoplay && swiper.instance.autoplay.start) {
+                    swiper.instance.autoplay.start();
+                }
+            }, 2000);
+        }
+        // Méthode 3: Via le conteneur directement
         else if (containerRef.value && containerRef.value.swiper) {
             console.log('Utilisation du conteneur direct');
-            containerRef.value.swiper.slideToLoop(index, 500);
-        }
-        // Méthode 3: Via l'API native du swiper-container
-        else if (containerRef.value) {
-            console.log('Utilisation de l\'API native');
-            containerRef.value.swiper.slideToLoop(index, 500);
+            if (typeof containerRef.value.swiper.slideToLoop === 'function') {
+                containerRef.value.swiper.slideToLoop(index, 500);
+            } else if (typeof containerRef.value.swiper.slideTo === 'function') {
+                containerRef.value.swiper.slideTo(index, 500);
+            }
         }
         else {
             console.error('Aucune méthode de navigation disponible');
+            console.log('État des objets:', {
+                hasInstance: !!swiper.instance,
+                hasContainer: !!containerRef.value,
+                instanceMethods: swiper.instance ? Object.keys(swiper.instance) : 'N/A'
+            });
         }
     };
 
@@ -101,6 +133,13 @@
         nextTick(() => {
             if (swiper.instance) {
                 console.log('Swiper prêt:', swiper.instance);
+                console.log('Méthodes disponibles:', Object.keys(swiper.instance));
+            }
+            
+            // Vérifier aussi le conteneur
+            if (containerRef.value) {
+                console.log('Container ref disponible:', containerRef.value);
+                console.log('Container swiper:', containerRef.value.swiper);
             }
         });
     });
@@ -230,7 +269,7 @@
                     <!-- Titre des miniatures -->
                     <div class="text-center mb-4">
                         <h3 class="text-white/90 text-sm font-medium tracking-wider uppercase">Sélectionnez un film</h3>
-                        <div class="text-white/60 text-xs mt-1">Slide actuel: {{ activeSlideIndex }} / {{ movies.length - 1 }}</div>
+                        <div class="text-white/60 text-xs mt-1">Slide actuel: {{ activeSlideIndex +1 }} / {{ movies.length}}</div>
                     </div>
                     
                     <!-- Conteneur des miniatures - prend toute la largeur -->
