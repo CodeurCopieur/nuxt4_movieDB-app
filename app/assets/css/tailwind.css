@@ -25,10 +25,10 @@ background-image: linear-gradient(to top, #111827, rgba(0, 0, 0, 0));
   z-index: 2000;
 }
 
-.header ul {
+/* .header ul {
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-}
+} */
 
 .router-link-active.router-link-exact-active svg {
   color: #1e40af;
