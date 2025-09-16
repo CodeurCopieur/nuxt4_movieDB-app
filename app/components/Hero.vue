@@ -138,7 +138,7 @@
                             <source :srcset="generateOptimizedImageUrl(movie.backdrop_path, 'medium')" media="(min-width: 480px) and (max-width: 768px)" sizes="50vw">
                             <source :srcset="generateOptimizedImageUrl(movie.poster_path, 'small')" media="(max-width: 480px)" sizes="100vw">
                             <img 
-                                class="w-full h-full object-cover scale-110 transition-transform duration-[20s] ease-out" 
+                                class="w-full h-full md:object-contains object-cover scale-110 transition-transform duration-[20s] ease-out" 
                                 :src="generateOptimizedImageUrl(movie.poster_path, 'small')"
                                 :alt="movie.original_title"
                                 loading="lazy">
