@@ -151,11 +151,11 @@
                     
                     <!-- Contenu principal avec animation -->
                     <div class="absolute z-10 h-full w-full flex items-center">
-                        <div class="container mx-auto px-6 lg:px-12">
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div class="container mx-auto px-4 sm:px-6 lg:px-12">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                                 
                                 <!-- Informations du film -->
-                                <div class="space-y-8 animate-fade-in-up">
+                                <div class="space-y-6 sm:space-y-8 animate-fade-in-up">
                                     <!-- Badge du film -->
                                     <div class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
                                         <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -163,7 +163,7 @@
                                     </div>
                                     
                                     <!-- Titre avec effet de texte -->
-                                    <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight">
+                                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-tight">
                                         <span class="bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
                                             {{ movie.title || movie.name }}
                                         </span>
@@ -198,8 +198,8 @@
                                     </div>
                                     
                                     <!-- Description avec style élégant -->
-                                    <p class="text-white/90 text-lg leading-relaxed max-w-2xl">
-                                        {{ movie.overview.substring(0, 180) }}...
+                                    <p class="text-white/90 text-base sm:text-lg leading-relaxed max-w-2xl">
+                                        {{ movie.overview.substring(0, 150) }}...
                                     </p>
                                     
                                     <!-- Boutons d'action -->
@@ -264,7 +264,7 @@
                     </div>
                     
                     <!-- Conteneur des miniatures - prend toute la largeur -->
-                    <div class="flex justify-center items-center space-x-2">
+                    <div class="flex justify-center items-center space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide px-4">
                         <div 
                             v-for="(movie, index) in movies" 
                             :key="index"
@@ -279,7 +279,7 @@
                                     <img 
                                         :src="generateOptimizedImageUrl(movie.poster_path, 'small')"
                                         :alt="movie.original_title"
-                                        class="w-20 h-28 sm:w-24 sm:h-32 md:w-28 md:h-36 object-cover transition-all duration-500"
+                                        class="w-16 h-22 sm:w-20 sm:h-28 md:w-24 md:h-32 lg:w-28 lg:h-36 object-cover transition-all duration-500"
                                         :class="{ 
                                             'opacity-60 brightness-75': index !== activeSlideIndex,
                                             'opacity-100 brightness-100': index === activeSlideIndex
@@ -546,6 +546,49 @@
 }
 
 /* Responsive adjustments */
+@media (max-width: 1536px) {
+  /* Écrans 16 pouces et similaires */
+  .container {
+    max-width: 1200px;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-width: 1280px) {
+  /* Écrans moyens (16 pouces) */
+  .text-5xl {
+    font-size: 2.5rem;
+    line-height: 1.1;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.25rem;
+  }
+  
+  .gap-8 {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  /* Tablettes et petits laptops */
+  .animate-fade-in-right {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+  }
+  
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .space-x-2 > * + * {
+    margin-left: 0.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .animate-fade-in-right {
     animation: fadeInUp 0.8s ease-out 0.2s both;
