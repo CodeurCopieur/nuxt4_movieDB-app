@@ -264,13 +264,14 @@
                     </div>
                     
                     <!-- Conteneur des miniatures - prend toute la largeur -->
-                    <div class="flex justify-center items-center space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide px-4">
+                    <div class="flex items-center space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide px-4 lg:justify-center lg:overflow-visible">
                         <div 
                             v-for="(movie, index) in movies" 
                             :key="index"
                             @click="goToSlide(index)"
                             class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105"
-                            :class="{ 'scale-110': index === activeSlideIndex }">
+                            :class="{ 'scale-110': index === activeSlideIndex }"
+                            style="min-width: fit-content;">
                             
                             <!-- Conteneur de la miniature -->
                             <div class="relative">
@@ -510,6 +511,23 @@
   display: none;
 }
 
+/* Scroll horizontal optimisé pour mobile/tablette */
+@media (max-width: 1023px) {
+  .overflow-x-auto {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Assurer que les miniatures ne se rétrécissent pas */
+  .flex-shrink-0 {
+    flex-shrink: 0;
+  }
+}
+
 /* Animation pour les miniatures actives */
 .group:hover .group-hover\:scale-105 {
   transform: scale(1.05);
@@ -586,6 +604,16 @@
   
   .space-x-2 > * + * {
     margin-left: 0.5rem;
+  }
+  
+  /* Optimisation du scroll horizontal pour les miniatures */
+  .overflow-x-auto {
+    scroll-snap-type: x mandatory;
+    scroll-padding: 1rem;
+  }
+  
+  .flex-shrink-0 {
+    scroll-snap-align: center;
   }
 }
 
