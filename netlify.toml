@@ -1,12 +1,11 @@
 [build]
   command = "npm install && npm run build"
-  publish = ".output/public"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20.19.0"
   NPM_FLAGS = "--prefer-offline --no-audit"
   NODE_OPTIONS = "--max-old-space-size=4096"
-  NUXT_TELEMETRY_DISABLED = "1"
 
 # Configuration pour les fonctions serverless
 [functions]
@@ -24,13 +23,7 @@
   to = "/.netlify/functions/api"
   status = 200
 
-# Redirections pour les assets statiques
-[[redirects]]
-  from = "/_nuxt/*"
-  to = "/_nuxt/:splat"
-  status = 200
-
-# Redirections SPA pour les routes client (doit être en dernier)
+# Redirections SPA pour les routes client
 [[redirects]]
   from = "/*"
   to = "/index.html"
