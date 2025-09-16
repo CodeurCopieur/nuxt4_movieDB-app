@@ -57,7 +57,6 @@ export default defineNuxtConfig({
   
   // Configuration pour nuxt-swiper
   swiper: {
-    prefix: 'Swiper',
     styleLang: 'css',
     modules: ['autoplay', 'pagination', 'navigation']
   },
