@@ -14,31 +14,16 @@ export default defineNuxtConfig({
         cors: true,
         headers: { 'Access-Control-Allow-Origin': '*' }
       }
-    },
-    // Optimisation pour les modules ES
-    esbuild: {
-      options: {
-        target: 'es2022'
-      }
     }
   },
   
   // Configuration pour éviter les problèmes de dépendances natives
   vite: {
     optimizeDeps: {
-      exclude: ['oxc-parser', '@oxc-parser/binding-linux-x64-gnu'],
-      include: ['swiper']
+      exclude: ['oxc-parser', '@oxc-parser/binding-linux-x64-gnu']
     },
     build: {
-      target: 'es2022',
-      rollupOptions: {
-        external: [],
-        output: {
-          manualChunks: {
-            swiper: ['swiper']
-          }
-        }
-      }
+      target: 'es2022'
     },
     esbuild: {
       target: 'es2022'
@@ -54,12 +39,6 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss', 
     'nuxt-swiper'
   ],
-  
-  // Configuration pour nuxt-swiper
-  swiper: {
-    styleLang: 'css',
-    modules: ['autoplay', 'pagination', 'navigation']
-  },
   css: ['@/assets/css/tailwind.css'],
   components: [
     { path: '~/components', pathPrefix: false }
