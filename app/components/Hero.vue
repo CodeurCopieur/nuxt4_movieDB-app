@@ -1,10 +1,4 @@
 <script setup>
-    import { Swiper, Autoplay, Pagination, Navigation } from 'swiper'
-    import 'swiper/css'
-    import 'swiper/css/autoplay'
-    import 'swiper/css/pagination'
-    import 'swiper/css/navigation'
-
     const { movies, type } = defineProps(['movies', 'type']);
     const resMovies = ref(movies);
 
@@ -73,44 +67,60 @@
     onMounted(() => {
         // Attendre que le DOM soit prêt
         nextTick(() => {
-            try {
-                // Initialiser Swiper avec les imports statiques
-                swiperInstance.value = new Swiper('.swiper-container', {
-                    spaceBetween: 0,
-                    loop: true,
-                    autoplay: {
-                        delay: 8000,
-                        disableOnInteraction: false
-                    },
-                    pagination: {
-                        el: '.swiper-pagination',
-                        clickable: true,
-                        dynamicBullets: true
-                    },
-                    navigation: {
-                        nextEl: '.swiper-button-next',
-                        prevEl: '.swiper-button-prev'
-                    },
-                    modules: [Autoplay, Pagination, Navigation],
-                    on: {
-                        slideChange: (swiper) => {
-                            const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
-                            console.log('Slide changé vers:', currentIndex);
-                            activeSlideIndex.value = currentIndex;
+            // Utiliser une approche plus simple avec setTimeout
+            setTimeout(async () => {
+                try {
+                    // Importer Swiper avec une approche différente
+                    const SwiperModule = await import('swiper');
+                    const Swiper = SwiperModule.default;
+                    
+                    // Importer les modules
+                    const AutoplayModule = await import('swiper/modules');
+                    const PaginationModule = await import('swiper/modules');
+                    const NavigationModule = await import('swiper/modules');
+                    
+                    const Autoplay = AutoplayModule.Autoplay;
+                    const Pagination = PaginationModule.Pagination;
+                    const Navigation = NavigationModule.Navigation;
+                    
+                    // Initialiser Swiper
+                    swiperInstance.value = new Swiper('.swiper-container', {
+                        spaceBetween: 0,
+                        loop: true,
+                        autoplay: {
+                            delay: 8000,
+                            disableOnInteraction: false
                         },
-                        init: (swiper) => {
-                            console.log('Swiper initialisé');
-                            const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
-                            activeSlideIndex.value = currentIndex;
+                        pagination: {
+                            el: '.swiper-pagination',
+                            clickable: true,
+                            dynamicBullets: true
+                        },
+                        navigation: {
+                            nextEl: '.swiper-button-next',
+                            prevEl: '.swiper-button-prev'
+                        },
+                        modules: [Autoplay, Pagination, Navigation],
+                        on: {
+                            slideChange: (swiper) => {
+                                const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                                console.log('Slide changé vers:', currentIndex);
+                                activeSlideIndex.value = currentIndex;
+                            },
+                            init: (swiper) => {
+                                console.log('Swiper initialisé');
+                                const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                                activeSlideIndex.value = currentIndex;
+                            }
                         }
-                    }
-                });
-                
-                console.log('Swiper initialisé avec succès');
-            } catch (error) {
-                console.error('Erreur lors de l\'initialisation de Swiper:', error);
-                console.log('Détails de l\'erreur:', error);
-            }
+                    });
+                    
+                    console.log('Swiper initialisé avec succès');
+                } catch (error) {
+                    console.error('Erreur lors de l\'initialisation de Swiper:', error);
+                    console.log('Détails de l\'erreur:', error);
+                }
+            }, 100); // Petit délai pour s'assurer que le DOM est prêt
         });
     });
 </script>
