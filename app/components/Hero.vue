@@ -10,6 +10,31 @@
     const activeSlideIndex = ref(0);
     const swiperInstance = ref(null);
     
+    // Fonction pour centrer la miniature active sur mobile/tablette
+    const centerActiveThumb = (index) => {
+        nextTick(() => {
+            const container = document.querySelector('.overflow-x-auto');
+            const thumb = document.querySelector(`[data-thumb-index="${index}"]`);
+            
+            if (container && thumb) {
+                const containerRect = container.getBoundingClientRect();
+                const thumbRect = thumb.getBoundingClientRect();
+                const scrollLeft = container.scrollLeft;
+                
+                // Calculer la position pour centrer la miniature
+                const thumbCenter = thumbRect.left - containerRect.left + thumbRect.width / 2;
+                const containerCenter = containerRect.width / 2;
+                const targetScrollLeft = scrollLeft + thumbCenter - containerCenter;
+                
+                // Animer le scroll vers la position cible
+                container.scrollTo({
+                    left: targetScrollLeft,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    };
+    
     const getTitle = (arrayId) => {
         const filteredObjects = computed(() => genres.filter(obj => arrayId.includes(obj.id)));
         return filteredObjects.value
@@ -30,8 +55,16 @@
         return `${baseUrl}${imageSize[size]}${optimizedPath}`;
     };
 
-    // Fonction pour changer de slide depuis les miniatures
+    // Fonction pour changer de slide depuis les miniatures (desktop uniquement)
     const goToSlide = (index) => {
+        // Vérifier si on est sur desktop (largeur d'écran >= 1024px)
+        const isDesktop = window.innerWidth >= 1024;
+        
+        if (!isDesktop) {
+            console.log('Navigation par miniatures désactivée sur mobile/tablette');
+            return;
+        }
+        
         console.log('Clic sur miniature:', index);
         
         // Vérifier que l'index est valide
@@ -143,6 +176,9 @@
                                 
                                 console.log('Slide changé vers:', currentIndex);
                                 activeSlideIndex.value = currentIndex;
+                                
+                                // Centrer la miniature active sur mobile/tablette uniquement
+                                centerActiveThumb(currentIndex);
                             },
                             init: (swiper) => {
                                 console.log('Swiper initialisé');
@@ -321,9 +357,14 @@
                         <div 
                             v-for="(movie, index) in movies" 
                             :key="index"
+                            :data-thumb-index="index"
                             @click="goToSlide(index)"
-                            class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105"
-                            :class="{ 'scale-110': index === activeSlideIndex }"
+                            class="group relative flex-shrink-0 transition-all duration-300"
+                            :class="{ 
+                                'scale-110': index === activeSlideIndex,
+                                'cursor-pointer hover:scale-105': true, // Toujours actif visuellement
+                                'pointer-events-none lg:pointer-events-auto': true // Désactiver les clics sur mobile/tablette
+                            }"
                             style="min-width: fit-content;">
                             
                             <!-- Conteneur de la miniature -->
