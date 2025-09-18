@@ -63,9 +63,6 @@
                     return;
                 }
                 
-                // Mettre à jour l'index actif immédiatement
-                activeSlideIndex.value = index;
-                
                 // Réactiver l'autoplay après 3 secondes
                 setTimeout(() => {
                     if (swiperInstance.value && swiperInstance.value.autoplay && swiperInstance.value.autoplay.start) {
@@ -74,13 +71,9 @@
                 }, 3000);
             } catch (error) {
                 console.error('Erreur avec swiper:', error);
-                // Fallback: mettre à jour l'index manuellement
-                activeSlideIndex.value = index;
             }
         } else {
             console.error('Swiper instance non disponible');
-            // Fallback: mettre à jour l'index manuellement
-            activeSlideIndex.value = index;
         }
     };
 
@@ -144,15 +137,13 @@
                     const Pagination = PaginationModule.Pagination;
                     const Navigation = NavigationModule.Navigation;
                     
-                    // Initialiser Swiper avec configuration robuste
+                    // Initialiser Swiper avec configuration simplifiée
                     swiperInstance.value = new Swiper('.swiper-container', {
                         spaceBetween: 0,
                         loop: true,
-                        loopAdditionalSlides: 1,
                         autoplay: {
                             delay: 8000,
-                            disableOnInteraction: false,
-                            pauseOnMouseEnter: true
+                            disableOnInteraction: false
                         },
                         pagination: {
                             el: '.swiper-pagination',
@@ -164,11 +155,6 @@
                             prevEl: '.swiper-button-prev'
                         },
                         modules: [Autoplay, Pagination, Navigation],
-                        // Configuration pour une meilleure compatibilité
-                        watchSlidesProgress: true,
-                        watchSlidesVisibility: true,
-                        observer: true,
-                        observeParents: true,
                         on: {
                             slideChange: (swiper) => {
                                 // Gestion robuste des index pour tous les navigateurs
@@ -191,8 +177,8 @@
                                 console.log('Slide changé vers:', currentIndex);
                                 activeSlideIndex.value = currentIndex;
                                 
-                                // Centrer la miniature active sur mobile/tablette
-                                centerActiveThumb(currentIndex);
+                                // Centrer la miniature active sur mobile/tablette (désactivé temporairement)
+                                // centerActiveThumb(currentIndex);
                             },
                             init: (swiper) => {
                                 console.log('Swiper initialisé');
