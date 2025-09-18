@@ -57,15 +57,15 @@
 
     // Fonction pour changer de slide depuis les miniatures (desktop uniquement)
     const goToSlide = (index) => {
-        // Vérifier si on est sur desktop (largeur d'écran >= 1024px)
-        const isDesktop = window.innerWidth >= 1024;
+        console.log('Clic sur miniature:', index);
         
-        if (!isDesktop) {
+        // Vérifier si on est sur mobile/tablette (largeur d'écran < 1024px)
+        const isMobile = window.innerWidth < 1024;
+        
+        if (isMobile) {
             console.log('Navigation par miniatures désactivée sur mobile/tablette');
             return;
         }
-        
-        console.log('Clic sur miniature:', index);
         
         // Vérifier que l'index est valide
         if (index < 0 || index >= movies.length || isNaN(index)) {
@@ -137,8 +137,7 @@
                         loopAdditionalSlides: 1,
                         autoplay: {
                             delay: 8000,
-                            disableOnInteraction: false,
-                            pauseOnMouseEnter: true
+                            disableOnInteraction: false
                         },
                         pagination: {
                             el: '.swiper-pagination',
@@ -359,12 +358,8 @@
                             :key="index"
                             :data-thumb-index="index"
                             @click="goToSlide(index)"
-                            class="group relative flex-shrink-0 transition-all duration-300"
-                            :class="{ 
-                                'scale-110': index === activeSlideIndex,
-                                'cursor-pointer hover:scale-105': true, // Toujours actif visuellement
-                                'pointer-events-none lg:pointer-events-auto': true // Désactiver les clics sur mobile/tablette
-                            }"
+                            class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105"
+                            :class="{ 'scale-110': index === activeSlideIndex }"
                             style="min-width: fit-content;">
                             
                             <!-- Conteneur de la miniature -->
