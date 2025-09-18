@@ -117,24 +117,18 @@
             // Utiliser une approche plus simple avec setTimeout
             setTimeout(async () => {
                 try {
-                    // Importer Swiper avec une approche différente
-                    const SwiperModule = await import('swiper');
-                    const Swiper = SwiperModule.default;
+                    console.log('Tentative d\'initialisation Swiper...');
                     
-                    // Importer les modules
-                    const AutoplayModule = await import('swiper/modules');
-                    const PaginationModule = await import('swiper/modules');
-                    const NavigationModule = await import('swiper/modules');
+                    // Importer Swiper avec une approche plus robuste pour la production
+                    const { default: Swiper } = await import('swiper');
+                    const { Autoplay, Pagination, Navigation } = await import('swiper/modules');
                     
-                    const Autoplay = AutoplayModule.Autoplay;
-                    const Pagination = PaginationModule.Pagination;
-                    const Navigation = NavigationModule.Navigation;
+                    console.log('Modules Swiper importés avec succès');
                     
-                    // Initialiser Swiper avec configuration robuste
+                    // Initialiser Swiper avec configuration simplifiée
                     swiperInstance.value = new Swiper('.swiper-container', {
                         spaceBetween: 0,
                         loop: true,
-                        loopAdditionalSlides: 1,
                         autoplay: {
                             delay: 8000,
                             disableOnInteraction: false
@@ -149,13 +143,10 @@
                             prevEl: '.swiper-button-prev'
                         },
                         modules: [Autoplay, Pagination, Navigation],
-                        // Configuration pour une meilleure compatibilité
-                        watchSlidesProgress: true,
-                        watchSlidesVisibility: true,
-                        observer: true,
-                        observeParents: true,
                         on: {
                             slideChange: (swiper) => {
+                                console.log('slideChange déclenché - realIndex:', swiper.realIndex, 'activeIndex:', swiper.activeIndex);
+                                
                                 // Gestion robuste des index pour tous les navigateurs
                                 let currentIndex = 0;
                                 
@@ -177,7 +168,7 @@
                                 activeSlideIndex.value = currentIndex;
                                 
                                 // Centrer la miniature active sur mobile/tablette uniquement
-                                centerActiveThumb(currentIndex);
+                                // centerActiveThumb(currentIndex); // Temporairement désactivé pour debug
                             },
                             init: (swiper) => {
                                 console.log('Swiper initialisé');
@@ -207,6 +198,26 @@
                 } catch (error) {
                     console.error('Erreur lors de l\'initialisation de Swiper:', error);
                     console.log('Détails de l\'erreur:', error);
+                    
+                    // Fallback pour la production - essayer une approche alternative
+                    try {
+                        console.log('Tentative de fallback...');
+                        const Swiper = (await import('swiper')).default;
+                        const { Autoplay, Pagination, Navigation } = await import('swiper/modules');
+                        
+                        swiperInstance.value = new Swiper('.swiper-container', {
+                            spaceBetween: 0,
+                            loop: true,
+                            autoplay: { delay: 8000, disableOnInteraction: false },
+                            pagination: { el: '.swiper-pagination', clickable: true },
+                            navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+                            modules: [Autoplay, Pagination, Navigation]
+                        });
+                        
+                        console.log('Swiper initialisé avec fallback');
+                    } catch (fallbackError) {
+                        console.error('Erreur de fallback:', fallbackError);
+                    }
                 }
             }, 100); // Petit délai pour s'assurer que le DOM est prêt
         });

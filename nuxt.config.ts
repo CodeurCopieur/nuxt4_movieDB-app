@@ -36,8 +36,8 @@ export default defineNuxtConfig({
   },
   
   modules: [
-    '@nuxtjs/tailwindcss', 
-    'nuxt-swiper'
+    '@nuxtjs/tailwindcss'
+    // 'nuxt-swiper' // Temporairement désactivé pour éviter les conflits
   ],
   css: ['@/assets/css/tailwind.css'],
   components: [
