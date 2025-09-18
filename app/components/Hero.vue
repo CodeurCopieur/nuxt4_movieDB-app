@@ -42,30 +42,24 @@
         
         if (swiperInstance.value) {
             try {
-                // Désactiver l'autoplay temporairement
-                if (swiperInstance.value.autoplay && swiperInstance.value.autoplay.stop) {
+                // Arrêter l'autoplay
+                if (swiperInstance.value.autoplay) {
                     swiperInstance.value.autoplay.stop();
                 }
                 
-                // Aller au slide spécifique avec gestion d'erreur
-                if (typeof swiperInstance.value.slideToLoop === 'function') {
-                    swiperInstance.value.slideToLoop(index, 500);
-                } else if (typeof swiperInstance.value.slideTo === 'function') {
-                    swiperInstance.value.slideTo(index, 500);
-                } else {
-                    console.error('Méthode de navigation Swiper non disponible');
-                    return;
-                }
+                // Aller au slide en utilisant slideToLoop pour le mode loop
+                swiperInstance.value.slideToLoop(index, 500);
                 
-                // Mettre à jour l'index actif immédiatement
-                activeSlideIndex.value = index;
+                // Ne pas mettre à jour l'index immédiatement, laisser slideChange le faire
+                // pour éviter les conflits avec le mode loop
                 
-                // Réactiver l'autoplay après 3 secondes
+                // Redémarrer l'autoplay après 3 secondes
                 setTimeout(() => {
-                    if (swiperInstance.value && swiperInstance.value.autoplay && swiperInstance.value.autoplay.start) {
+                    if (swiperInstance.value && swiperInstance.value.autoplay) {
                         swiperInstance.value.autoplay.start();
                     }
                 }, 3000);
+                
             } catch (error) {
                 console.error('Erreur avec swiper:', error);
                 // Fallback: mettre à jour l'index manuellement
@@ -73,7 +67,6 @@
             }
         } else {
             console.error('Swiper instance non disponible');
-            // Fallback: mettre à jour l'index manuellement
             activeSlideIndex.value = index;
         }
     };
@@ -81,99 +74,57 @@
     onMounted(() => {
         // Attendre que le DOM soit prêt
         nextTick(() => {
-            // Utiliser une approche plus simple avec setTimeout
+            // Délai plus long pour s'assurer que tout est chargé
             setTimeout(async () => {
                 try {
-                    // Importer Swiper avec une approche différente
+                    console.log('Début de l\'initialisation Swiper...');
+                    
+                    // Vérifier que le conteneur existe
+                    const container = document.querySelector('.swiper-container');
+                    if (!container) {
+                        console.error('Conteneur Swiper non trouvé');
+                        return;
+                    }
+                    
+                    // Importer Swiper de manière simple
                     const SwiperModule = await import('swiper');
                     const Swiper = SwiperModule.default;
                     
-                    // Importer les modules
-                    const AutoplayModule = await import('swiper/modules');
-                    const PaginationModule = await import('swiper/modules');
-                    const NavigationModule = await import('swiper/modules');
-                    
-                    const Autoplay = AutoplayModule.Autoplay;
-                    const Pagination = PaginationModule.Pagination;
-                    const Navigation = NavigationModule.Navigation;
-                    
-                    // Initialiser Swiper avec configuration robuste
+                    // Initialiser Swiper avec configuration de base (sans modules pour éviter les erreurs)
                     swiperInstance.value = new Swiper('.swiper-container', {
                         spaceBetween: 0,
                         loop: true,
-                        loopAdditionalSlides: 1,
                         autoplay: {
                             delay: 8000,
-                            disableOnInteraction: false,
-                            pauseOnMouseEnter: true
+                            disableOnInteraction: false
                         },
                         pagination: {
                             el: '.swiper-pagination',
-                            clickable: true,
-                            dynamicBullets: true
+                            clickable: true
                         },
                         navigation: {
                             nextEl: '.swiper-button-next',
                             prevEl: '.swiper-button-prev'
                         },
-                        modules: [Autoplay, Pagination, Navigation],
-                        // Configuration pour une meilleure compatibilité
-                        watchSlidesProgress: true,
-                        watchSlidesVisibility: true,
-                        observer: true,
-                        observeParents: true,
                         on: {
                             slideChange: (swiper) => {
-                                // Gestion robuste des index pour tous les navigateurs
-                                let currentIndex = 0;
-                                
-                                if (swiper.realIndex !== undefined && !isNaN(swiper.realIndex)) {
-                                    currentIndex = swiper.realIndex;
-                                } else if (swiper.activeIndex !== undefined && !isNaN(swiper.activeIndex)) {
-                                    currentIndex = swiper.activeIndex;
-                                } else {
-                                    // Fallback: utiliser l'index du slide actuel
-                                    currentIndex = swiper.slides ? swiper.slides.findIndex(slide => slide.classList.contains('swiper-slide-active')) : 0;
-                                }
-                                
-                                // S'assurer que l'index est valide
-                                if (currentIndex < 0 || currentIndex >= movies.length) {
-                                    currentIndex = 0;
-                                }
-                                
-                                console.log('Slide changé vers:', currentIndex);
+                                // Utiliser realIndex pour le mode loop, sinon activeIndex
+                                const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                                console.log('Slide changé vers:', currentIndex, 'realIndex:', swiper.realIndex, 'activeIndex:', swiper.activeIndex);
                                 activeSlideIndex.value = currentIndex;
                             },
                             init: (swiper) => {
-                                console.log('Swiper initialisé');
-                                
-                                // Gestion robuste des index pour l'initialisation
-                                let currentIndex = 0;
-                                
-                                if (swiper.realIndex !== undefined && !isNaN(swiper.realIndex)) {
-                                    currentIndex = swiper.realIndex;
-                                } else if (swiper.activeIndex !== undefined && !isNaN(swiper.activeIndex)) {
-                                    currentIndex = swiper.activeIndex;
-                                } else {
-                                    currentIndex = 0;
-                                }
-                                
-                                // S'assurer que l'index est valide
-                                if (currentIndex < 0 || currentIndex >= movies.length) {
-                                    currentIndex = 0;
-                                }
-                                
+                                console.log('Swiper initialisé avec succès');
+                                const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
                                 activeSlideIndex.value = currentIndex;
                             }
                         }
                     });
                     
-                    console.log('Swiper initialisé avec succès');
                 } catch (error) {
                     console.error('Erreur lors de l\'initialisation de Swiper:', error);
-                    console.log('Détails de l\'erreur:', error);
                 }
-            }, 100); // Petit délai pour s'assurer que le DOM est prêt
+            }, 500); // Délai plus long
         });
     });
 </script>
