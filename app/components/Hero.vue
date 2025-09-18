@@ -35,7 +35,7 @@
         console.log('Clic sur miniature:', index);
         
         // Vérifier que l'index est valide
-        if (index < 0 || index >= movies.length) {
+        if (index < 0 || index >= movies.length || isNaN(index)) {
             console.error('Index invalide:', index);
             return;
         }
@@ -43,24 +43,38 @@
         if (swiperInstance.value) {
             try {
                 // Désactiver l'autoplay temporairement
-                if (swiperInstance.value.autoplay) {
+                if (swiperInstance.value.autoplay && swiperInstance.value.autoplay.stop) {
                     swiperInstance.value.autoplay.stop();
                 }
                 
-                // Aller au slide spécifique
-                swiperInstance.value.slideToLoop(index, 500);
+                // Aller au slide spécifique avec gestion d'erreur
+                if (typeof swiperInstance.value.slideToLoop === 'function') {
+                    swiperInstance.value.slideToLoop(index, 500);
+                } else if (typeof swiperInstance.value.slideTo === 'function') {
+                    swiperInstance.value.slideTo(index, 500);
+                } else {
+                    console.error('Méthode de navigation Swiper non disponible');
+                    return;
+                }
+                
+                // Mettre à jour l'index actif immédiatement
+                activeSlideIndex.value = index;
                 
                 // Réactiver l'autoplay après 3 secondes
                 setTimeout(() => {
-                    if (swiperInstance.value.autoplay) {
+                    if (swiperInstance.value && swiperInstance.value.autoplay && swiperInstance.value.autoplay.start) {
                         swiperInstance.value.autoplay.start();
                     }
                 }, 3000);
             } catch (error) {
                 console.error('Erreur avec swiper:', error);
+                // Fallback: mettre à jour l'index manuellement
+                activeSlideIndex.value = index;
             }
         } else {
             console.error('Swiper instance non disponible');
+            // Fallback: mettre à jour l'index manuellement
+            activeSlideIndex.value = index;
         }
     };
 
@@ -83,13 +97,15 @@
                     const Pagination = PaginationModule.Pagination;
                     const Navigation = NavigationModule.Navigation;
                     
-                    // Initialiser Swiper
+                    // Initialiser Swiper avec configuration robuste
                     swiperInstance.value = new Swiper('.swiper-container', {
                         spaceBetween: 0,
                         loop: true,
+                        loopAdditionalSlides: 1,
                         autoplay: {
                             delay: 8000,
-                            disableOnInteraction: false
+                            disableOnInteraction: false,
+                            pauseOnMouseEnter: true
                         },
                         pagination: {
                             el: '.swiper-pagination',
@@ -101,15 +117,52 @@
                             prevEl: '.swiper-button-prev'
                         },
                         modules: [Autoplay, Pagination, Navigation],
+                        // Configuration pour une meilleure compatibilité
+                        watchSlidesProgress: true,
+                        watchSlidesVisibility: true,
+                        observer: true,
+                        observeParents: true,
                         on: {
                             slideChange: (swiper) => {
-                                const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                                // Gestion robuste des index pour tous les navigateurs
+                                let currentIndex = 0;
+                                
+                                if (swiper.realIndex !== undefined && !isNaN(swiper.realIndex)) {
+                                    currentIndex = swiper.realIndex;
+                                } else if (swiper.activeIndex !== undefined && !isNaN(swiper.activeIndex)) {
+                                    currentIndex = swiper.activeIndex;
+                                } else {
+                                    // Fallback: utiliser l'index du slide actuel
+                                    currentIndex = swiper.slides ? swiper.slides.findIndex(slide => slide.classList.contains('swiper-slide-active')) : 0;
+                                }
+                                
+                                // S'assurer que l'index est valide
+                                if (currentIndex < 0 || currentIndex >= movies.length) {
+                                    currentIndex = 0;
+                                }
+                                
                                 console.log('Slide changé vers:', currentIndex);
                                 activeSlideIndex.value = currentIndex;
                             },
                             init: (swiper) => {
                                 console.log('Swiper initialisé');
-                                const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
+                                
+                                // Gestion robuste des index pour l'initialisation
+                                let currentIndex = 0;
+                                
+                                if (swiper.realIndex !== undefined && !isNaN(swiper.realIndex)) {
+                                    currentIndex = swiper.realIndex;
+                                } else if (swiper.activeIndex !== undefined && !isNaN(swiper.activeIndex)) {
+                                    currentIndex = swiper.activeIndex;
+                                } else {
+                                    currentIndex = 0;
+                                }
+                                
+                                // S'assurer que l'index est valide
+                                if (currentIndex < 0 || currentIndex >= movies.length) {
+                                    currentIndex = 0;
+                                }
+                                
                                 activeSlideIndex.value = currentIndex;
                             }
                         }
@@ -125,12 +178,12 @@
     });
 </script>
 <template>
-    <div class="relative h-screen min-h-[600px] overflow-hidden">
+    <div class="relative md:h-screen min-h-[100dvh] overflow-hidden">
         <ClientOnly>
             <div class="swiper-container h-full w-full">
                 <div class="swiper-wrapper">
                     <div v-for="(movie, i) in movies" :key="i" class="swiper-slide">
-                        <div class="relative w-full h-screen min-h-[600px] overflow-hidden">
+                        <div class="relative w-full md:h-screen min-h-[100dvh] overflow-hidden">
                     <!-- Image de fond avec effet parallax -->
                     <div class="absolute inset-0 z-0">
                         <picture class="w-full h-full">
