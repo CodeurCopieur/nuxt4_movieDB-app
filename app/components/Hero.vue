@@ -9,7 +9,6 @@
    
     const activeSlideIndex = ref(0);
     const swiperInstance = ref(null);
-    const isDesktop = ref(false);
     
     const getTitle = (arrayId) => {
         const filteredObjects = computed(() => genres.filter(obj => arrayId.includes(obj.id)));
@@ -31,13 +30,8 @@
         return `${baseUrl}${imageSize[size]}${optimizedPath}`;
     };
 
-    // Fonction pour changer de slide depuis les miniatures (desktop seulement)
+    // Fonction pour changer de slide depuis les miniatures
     const goToSlide = (index) => {
-        // Désactiver sur mobile/tablette - navigation par swipe uniquement
-        if (!isDesktop.value) {
-            return;
-        }
-        
         console.log('Clic sur miniature:', index);
         
         // Vérifier que l'index est valide
@@ -63,6 +57,9 @@
                     return;
                 }
                 
+                // Mettre à jour l'index actif immédiatement
+                activeSlideIndex.value = index;
+                
                 // Réactiver l'autoplay après 3 secondes
                 setTimeout(() => {
                     if (swiperInstance.value && swiperInstance.value.autoplay && swiperInstance.value.autoplay.start) {
@@ -71,54 +68,17 @@
                 }, 3000);
             } catch (error) {
                 console.error('Erreur avec swiper:', error);
+                // Fallback: mettre à jour l'index manuellement
+                activeSlideIndex.value = index;
             }
         } else {
             console.error('Swiper instance non disponible');
+            // Fallback: mettre à jour l'index manuellement
+            activeSlideIndex.value = index;
         }
-    };
-
-    // Fonction pour centrer la miniature active sur mobile/tablette
-    const centerActiveThumb = (index) => {
-        // Seulement sur mobile/tablette
-        if (isDesktop.value) {
-            return;
-        }
-        
-        nextTick(() => {
-            const container = document.querySelector('.thumbs-container');
-            const thumb = document.querySelector(`[data-thumb-index="${index}"]`);
-            
-            if (container && thumb) {
-                const containerRect = container.getBoundingClientRect();
-                const thumbRect = thumb.getBoundingClientRect();
-                const scrollLeft = container.scrollLeft;
-                
-                // Calculer la position pour centrer la miniature
-                const thumbCenter = thumbRect.left - containerRect.left + thumbRect.width / 2;
-                const containerCenter = containerRect.width / 2;
-                const targetScrollLeft = scrollLeft + thumbCenter - containerCenter;
-                
-                // Animer le scroll vers la position cible
-                container.scrollTo({
-                    left: targetScrollLeft,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    };
-
-    // Fonction pour détecter la taille d'écran
-    const checkScreenSize = () => {
-        isDesktop.value = window.innerWidth >= 1024;
     };
 
     onMounted(() => {
-        // Détecter la taille d'écran initiale
-        checkScreenSize();
-        
-        // Écouter les changements de taille d'écran
-        window.addEventListener('resize', checkScreenSize);
-        
         // Attendre que le DOM soit prêt
         nextTick(() => {
             // Utiliser une approche plus simple avec setTimeout
@@ -137,13 +97,15 @@
                     const Pagination = PaginationModule.Pagination;
                     const Navigation = NavigationModule.Navigation;
                     
-                    // Initialiser Swiper avec configuration simplifiée
+                    // Initialiser Swiper avec configuration robuste
                     swiperInstance.value = new Swiper('.swiper-container', {
                         spaceBetween: 0,
                         loop: true,
+                        loopAdditionalSlides: 1,
                         autoplay: {
                             delay: 8000,
-                            disableOnInteraction: false
+                            disableOnInteraction: false,
+                            pauseOnMouseEnter: true
                         },
                         pagination: {
                             el: '.swiper-pagination',
@@ -155,6 +117,11 @@
                             prevEl: '.swiper-button-prev'
                         },
                         modules: [Autoplay, Pagination, Navigation],
+                        // Configuration pour une meilleure compatibilité
+                        watchSlidesProgress: true,
+                        watchSlidesVisibility: true,
+                        observer: true,
+                        observeParents: true,
                         on: {
                             slideChange: (swiper) => {
                                 // Gestion robuste des index pour tous les navigateurs
@@ -176,9 +143,6 @@
                                 
                                 console.log('Slide changé vers:', currentIndex);
                                 activeSlideIndex.value = currentIndex;
-                                
-                                // Centrer la miniature active sur mobile/tablette (désactivé temporairement)
-                                // centerActiveThumb(currentIndex);
                             },
                             init: (swiper) => {
                                 console.log('Swiper initialisé');
@@ -211,11 +175,6 @@
                 }
             }, 100); // Petit délai pour s'assurer que le DOM est prêt
         });
-    });
-
-    // Cleanup des event listeners
-    onUnmounted(() => {
-        window.removeEventListener('resize', checkScreenSize);
     });
 </script>
 <template>
@@ -353,25 +312,18 @@
                 <div class="container-2xl mx-auto px-4 pt-6 pb-10">
                     <!-- Titre des miniatures -->
                     <div class="text-center mb-4">
-                        <h3 class="text-white/90 text-sm font-medium tracking-wider uppercase">
-                            {{ isDesktop ? 'Sélectionnez un film' : 'Glissez pour naviguer' }}
-                        </h3>
+                        <h3 class="text-white/90 text-sm font-medium tracking-wider uppercase">Sélectionnez un film</h3>
                         <div class="text-white/60 text-xs mt-1">Slide actuel: {{ activeSlideIndex }} / {{ movies.length - 1 }}</div>
                     </div>
                     
                     <!-- Conteneur des miniatures - prend toute la largeur -->
-                    <div class="thumbs-container flex items-center space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide px-4 lg:justify-center lg:overflow-visible">
+                    <div class="flex items-center space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide px-4 lg:justify-center lg:overflow-visible">
                         <div 
                             v-for="(movie, index) in movies" 
                             :key="index"
-                            :data-thumb-index="index"
                             @click="goToSlide(index)"
-                            class="group relative flex-shrink-0 transition-all duration-300"
-                            :class="{ 
-                                'scale-110': index === activeSlideIndex,
-                                'cursor-pointer hover:scale-105': isDesktop,
-                                'cursor-default': !isDesktop
-                            }"
+                            class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105"
+                            :class="{ 'scale-110': index === activeSlideIndex }"
                             style="min-width: fit-content;">
                             
                             <!-- Conteneur de la miniature -->
