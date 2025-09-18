@@ -9,6 +9,8 @@
    
     const activeSlideIndex = ref(0);
     const swiperInstance = ref(null);
+    const touchStartTime = ref(0);
+    const touchStartIndex = ref(-1);
     
     const getTitle = (arrayId) => {
         const filteredObjects = computed(() => genres.filter(obj => arrayId.includes(obj.id)));
@@ -60,6 +62,9 @@
                 // Mettre à jour l'index actif immédiatement
                 activeSlideIndex.value = index;
                 
+                // Centrer la miniature active sur mobile
+                centerActiveThumb(index);
+                
                 // Réactiver l'autoplay après 3 secondes
                 setTimeout(() => {
                     if (swiperInstance.value && swiperInstance.value.autoplay && swiperInstance.value.autoplay.start) {
@@ -76,6 +81,67 @@
             // Fallback: mettre à jour l'index manuellement
             activeSlideIndex.value = index;
         }
+    };
+
+    // Fonctions pour gérer les événements tactiles sur mobile
+    const handleTouchStart = (index, event) => {
+        touchStartTime.value = Date.now();
+        touchStartIndex.value = index;
+        
+        // Empêcher le scroll horizontal pendant le touch
+        event.preventDefault();
+        
+        // Ajouter un feedback visuel immédiat
+        event.target.style.transform = 'scale(0.95)';
+    };
+
+    const handleTouchEnd = (index, event) => {
+        const touchDuration = Date.now() - touchStartTime.value;
+        
+        // Remettre l'échelle normale
+        event.target.style.transform = '';
+        
+        // Si le touch a duré moins de 500ms et que c'est le même index, c'est un tap
+        if (touchDuration < 500 && touchStartIndex.value === index) {
+            // Empêcher le comportement par défaut
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Déclencher le changement de slide
+            goToSlide(index);
+            
+            // Centrer la miniature active sur mobile
+            centerActiveThumb(index);
+        }
+        
+        // Reset des valeurs
+        touchStartTime.value = 0;
+        touchStartIndex.value = -1;
+    };
+
+    // Fonction pour centrer la miniature active sur mobile
+    const centerActiveThumb = (index) => {
+        nextTick(() => {
+            const container = document.querySelector('.overflow-x-auto');
+            const thumb = document.querySelector(`[data-thumb-index="${index}"]`);
+            
+            if (container && thumb) {
+                const containerRect = container.getBoundingClientRect();
+                const thumbRect = thumb.getBoundingClientRect();
+                const scrollLeft = container.scrollLeft;
+                
+                // Calculer la position pour centrer la miniature
+                const thumbCenter = thumbRect.left - containerRect.left + thumbRect.width / 2;
+                const containerCenter = containerRect.width / 2;
+                const targetScrollLeft = scrollLeft + thumbCenter - containerCenter;
+                
+                // Animer le scroll vers la position cible
+                container.scrollTo({
+                    left: targetScrollLeft,
+                    behavior: 'smooth'
+                });
+            }
+        });
     };
 
     onMounted(() => {
@@ -143,6 +209,9 @@
                                 
                                 console.log('Slide changé vers:', currentIndex);
                                 activeSlideIndex.value = currentIndex;
+                                
+                                // Centrer la miniature active sur mobile
+                                centerActiveThumb(currentIndex);
                             },
                             init: (swiper) => {
                                 console.log('Swiper initialisé');
@@ -317,14 +386,18 @@
                     </div>
                     
                     <!-- Conteneur des miniatures - prend toute la largeur -->
-                    <div class="flex items-center space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide px-4 lg:justify-center lg:overflow-visible">
+                    <div class="flex items-center space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide px-4 lg:justify-center lg:overflow-visible" 
+                         style="touch-action: pan-x; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
                         <div 
                             v-for="(movie, index) in movies" 
                             :key="index"
+                            :data-thumb-index="index"
                             @click="goToSlide(index)"
-                            class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105"
+                            @touchstart="handleTouchStart(index, $event)"
+                            @touchend="handleTouchEnd(index, $event)"
+                            class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95"
                             :class="{ 'scale-110': index === activeSlideIndex }"
-                            style="min-width: fit-content;">
+                            style="min-width: fit-content; touch-action: manipulation;">
                             
                             <!-- Conteneur de la miniature -->
                             <div class="relative">
