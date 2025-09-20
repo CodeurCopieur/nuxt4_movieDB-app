@@ -189,11 +189,11 @@
                                     <!-- Note avec style premium -->
                                     <div class="flex items-center space-x-4">
                                         <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
-                                            <!-- <div class="flex">
+                                            <div class="flex">
                                                 <span v-for="star in 5" :key="star" 
                                                     :class="getStarClass(star, movie.vote_average)"
                                                     class="text-lg">{{ getStarSymbol(star, movie.vote_average) }}</span>
-                                            </div> -->
+                                            </div>
                                             <span class="text-white font-semibold">{{ movie.vote_average.toFixed(1) }}</span>
                                         </div>
                                         <div class="text-white/70 text-sm">
