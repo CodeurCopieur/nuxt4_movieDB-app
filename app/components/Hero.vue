@@ -9,10 +9,74 @@
    
     const activeSlideIndex = ref(0);
     const swiperInstance = ref(null);
+    const startIndex = ref(0);
+    const itemsPerPage = ref(5); // 5 miniatures par ligne sur mobile/tablette
     
     const getTitle = (arrayId) => {
         const filteredObjects = computed(() => genres.filter(obj => arrayId.includes(obj.id)));
         return filteredObjects.value
+    };
+
+    // Computed pour les miniatures visibles sur mobile/tablette
+    const visibleThumbs = computed(() => {
+        return movies.slice(startIndex.value, startIndex.value + itemsPerPage.value);
+    });
+
+    // Fonctions de navigation pour mobile/tablette
+    const goToPreviousSlide = () => {
+        if (activeSlideIndex.value > 0) {
+            const newIndex = activeSlideIndex.value - 1;
+            goToSlide(newIndex);
+            
+            // Ajuster startIndex si nécessaire pour garder la miniature active visible
+            if (newIndex < startIndex.value) {
+                startIndex.value = Math.max(0, newIndex - (newIndex % 5));
+            }
+        }
+    };
+
+    const goToNextSlide = () => {
+        if (activeSlideIndex.value < movies.length - 1) {
+            const newIndex = activeSlideIndex.value + 1;
+            goToSlide(newIndex);
+            
+            // Ajuster startIndex si nécessaire pour garder la miniature active visible
+            const endIndex = startIndex.value + itemsPerPage.value - 1;
+            if (newIndex > endIndex) {
+                startIndex.value = Math.min(movies.length - itemsPerPage.value, newIndex - (newIndex % 5));
+            }
+        }
+    };
+
+    // Fonctions pour naviguer par groupes de 5 avec boucle
+    const goToPreviousGroup = () => {
+        let newStartIndex = startIndex.value - itemsPerPage.value;
+        
+        // Si on est au premier groupe, aller au dernier groupe (boucle)
+        if (newStartIndex < 0) {
+            // Calculer le dernier groupe complet
+            const lastGroupStart = Math.floor((movies.length - 1) / itemsPerPage.value) * itemsPerPage.value;
+            newStartIndex = lastGroupStart;
+        }
+        
+        startIndex.value = newStartIndex;
+        
+        // Aller au premier slide du nouveau groupe
+        goToSlide(newStartIndex);
+    };
+
+    const goToNextGroup = () => {
+        let newStartIndex = startIndex.value + itemsPerPage.value;
+        
+        // Si on dépasse le dernier groupe, revenir au premier groupe (boucle)
+        if (newStartIndex >= movies.length) {
+            newStartIndex = 0;
+        }
+        
+        startIndex.value = newStartIndex;
+        
+        // Aller au premier slide du nouveau groupe
+        goToSlide(newStartIndex);
     };
 
     // Fonction pour générer une URL d'image optimisée en fonction de la taille et du format
@@ -112,6 +176,14 @@
                                 const currentIndex = swiper.realIndex !== undefined ? swiper.realIndex : swiper.activeIndex;
                                 console.log('Slide changé vers:', currentIndex, 'realIndex:', swiper.realIndex, 'activeIndex:', swiper.activeIndex);
                                 activeSlideIndex.value = currentIndex;
+                                
+                                // Ajuster startIndex pour mobile/tablette
+                                const endIndex = startIndex.value + itemsPerPage.value - 1;
+                                if (currentIndex > endIndex) {
+                                    startIndex.value = Math.min(movies.length - itemsPerPage.value, currentIndex - (currentIndex % 5));
+                                } else if (currentIndex < startIndex.value) {
+                                    startIndex.value = Math.max(0, currentIndex - (currentIndex % 5));
+                                }
                             },
                             init: (swiper) => {
                                 console.log('Swiper initialisé avec succès');
@@ -264,76 +336,159 @@
                     <!-- Titre des miniatures -->
                     <div class="text-center mb-4">
                         <h3 class="text-white/90 text-sm font-medium tracking-wider uppercase">Sélectionnez un film</h3>
-                        <div class="text-white/60 text-xs mt-1">Slide actuel: {{ activeSlideIndex + 1 }} / {{ movies.length }}</div>
                     </div>
                     
-                    <!-- Conteneur des miniatures - prend toute la largeur -->
-                    <div class="flex items-center space-x-1 sm:space-x-2 overflow-x-auto scrollbar-hide px-4 lg:justify-center lg:overflow-visible">
-                        <div 
-                            v-for="(movie, index) in movies" 
-                            :key="index"
-                            @click="goToSlide(index)"
-                            class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105"
-                            :class="{ 'scale-110': index === activeSlideIndex }"
-                            style="min-width: fit-content;">
+                    <!-- Conteneur des miniatures avec navigation responsive -->
+                    <div class="relative">
+                        <!-- Navigation pour mobile/tablette -->
+                        <div class="flex justify-center items-center space-x-4 mb-4 lg:hidden">
+                            <!-- Bouton groupe précédent -->
+                            <button 
+                                @click="goToPreviousGroup"
+                                class="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white transition-all duration-300 hover:bg-white/20"
+                                title="Groupe précédent">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                                </svg>
+                            </button>
                             
-                            <!-- Conteneur de la miniature -->
-                            <div class="relative">
-                                <!-- Image miniature -->
-                                <div class="relative overflow-hidden rounded-xl transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-blue-500/30">
-                                    <img 
-                                        :src="generateOptimizedImageUrl(movie.poster_path, 'small')"
-                                        :alt="movie.original_title"
-                                        class="w-16 h-22 sm:w-20 sm:h-28 md:w-24 md:h-32 lg:w-28 lg:h-36 object-cover transition-all duration-500"
-                                        :class="{ 
-                                            'opacity-60 brightness-75': index !== activeSlideIndex,
-                                            'opacity-100 brightness-100': index === activeSlideIndex
-                                        }">
-                                    
-                                    <!-- Overlay de sélection -->
-                                    <div 
-                                        v-if="index === activeSlideIndex"
-                                        class="absolute inset-0 bg-gradient-to-t from-blue-600/80 via-blue-500/20 to-transparent rounded-xl">
-                                    </div>
-                                    
-                                    <!-- Bordure animée pour la miniature active -->
-                                    <div 
-                                        v-if="index === activeSlideIndex"
-                                        class="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl opacity-75 animate-pulse">
-                                        <div class="absolute inset-0.5 bg-black/20 backdrop-blur-sm rounded-lg"></div>
-                                    </div>
-                                    
-                                    <!-- Icône play sur hover -->
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                        <div class="bg-white/20 backdrop-blur-sm rounded-full p-2 transform scale-75 group-hover:scale-100 transition-transform duration-300">
-                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Indicateur de progression (barre en bas) -->
-                                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-xl overflow-hidden">
+                            
+                            <!-- Bouton groupe suivant -->
+                            <button 
+                                @click="goToNextGroup"
+                                class="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white transition-all duration-300 hover:bg-white/20"
+                                title="Groupe suivant">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M6 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Miniatures sur desktop (toutes visibles) -->
+                        <div class="hidden lg:flex items-center space-x-2 justify-center">
+                            <div 
+                                v-for="(movie, index) in movies" 
+                                :key="index"
+                                @click="goToSlide(index)"
+                                class="group relative flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-105"
+                                :class="{ 'scale-110': index === activeSlideIndex }"
+                                style="min-width: fit-content;">
+                                <!-- Contenu miniature desktop (existant) -->
+                                <div class="relative">
+                                    <div class="relative overflow-hidden rounded-xl transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-blue-500/30">
+                                        <img 
+                                            :src="generateOptimizedImageUrl(movie.poster_path, 'small')"
+                                            :alt="movie.original_title"
+                                            class="w-28 h-36 object-cover transition-all duration-500"
+                                            :class="{ 
+                                                'opacity-60 brightness-75': index !== activeSlideIndex,
+                                                'opacity-100 brightness-100': index === activeSlideIndex
+                                            }">
+                                        
                                         <div 
                                             v-if="index === activeSlideIndex"
-                                            class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-b-xl animate-pulse">
+                                            class="absolute inset-0 bg-gradient-to-t from-blue-600/80 via-blue-500/20 to-transparent rounded-xl">
+                                        </div>
+                                        
+                                        <div 
+                                            v-if="index === activeSlideIndex"
+                                            class="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl opacity-75 animate-pulse">
+                                            <div class="absolute inset-0.5 bg-black/20 backdrop-blur-sm rounded-lg"></div>
+                                        </div>
+                                        
+                                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                            <div class="bg-white/20 backdrop-blur-sm rounded-full p-2 transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-xl overflow-hidden">
+                                            <div 
+                                                v-if="index === activeSlideIndex"
+                                                class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-b-xl animate-pulse">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="absolute top-1 right-1 bg-black/80 backdrop-blur-sm text-white text-xs px-1.5 py-0.5 rounded-full border border-white/20">
+                                        <span class="flex items-center space-x-1">
+                                            <span class="text-yellow-400 text-xs">★</span>
+                                            <span class="font-medium">{{ movie.vote_average.toFixed(1) }}</span>
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                        <div class="bg-black/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-full whitespace-nowrap border border-white/20 shadow-lg max-w-28">
+                                            <span class="truncate block">{{ movie.title || movie.name }}</span>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Miniatures sur mobile/tablette (ligne de 5) -->
+                        <div class="lg:hidden flex items-center justify-center space-x-2 sm:space-x-3 px-2 sm:px-4">
+                            <div 
+                                v-for="(movie, index) in visibleThumbs" 
+                                :key="index"
+                                @click="goToSlide(startIndex + index)"
+                                class="group relative cursor-pointer transition-all duration-300 hover:scale-105 flex-shrink-0"
+                                :class="{ 'scale-110': (startIndex + index) === activeSlideIndex }">
                                 
-                                <!-- Note du film en overlay -->
-                                <div class="absolute top-1 right-1 bg-black/80 backdrop-blur-sm text-white text-xs px-1.5 py-0.5 rounded-full border border-white/20">
-                                    <span class="flex items-center space-x-1">
-                                        <span class="text-yellow-400 text-xs">★</span>
-                                        <span class="font-medium">{{ movie.vote_average.toFixed(1) }}</span>
-                                    </span>
+                                <!-- Contenu miniature mobile -->
+                                <div class="relative">
+                                    <div class="relative overflow-hidden rounded-xl transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-blue-500/30">
+                                        <img 
+                                            :src="generateOptimizedImageUrl(movie.poster_path, 'small')"
+                                            :alt="movie.original_title"
+                                            class="w-16 h-20 sm:w-18 sm:h-24 md:w-20 md:h-28 object-cover transition-all duration-500"
+                                            :class="{ 
+                                                'opacity-60 brightness-75': (startIndex + index) !== activeSlideIndex,
+                                                'opacity-100 brightness-100': (startIndex + index) === activeSlideIndex
+                                            }">
+                                        
+                                        <div 
+                                            v-if="(startIndex + index) === activeSlideIndex"
+                                            class="absolute inset-0 bg-gradient-to-t from-blue-600/80 via-blue-500/20 to-transparent rounded-xl">
+                                        </div>
+                                        
+                                        <div 
+                                            v-if="(startIndex + index) === activeSlideIndex"
+                                            class="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl opacity-75 animate-pulse">
+                                            <div class="absolute inset-0.5 bg-black/20 backdrop-blur-sm rounded-lg"></div>
+                                        </div>
+                                        
+                                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                            <div class="bg-white/20 backdrop-blur-sm rounded-full p-1 transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20 rounded-b-xl overflow-hidden">
+                                            <div 
+                                                v-if="(startIndex + index) === activeSlideIndex"
+                                                class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-b-xl animate-pulse">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="absolute top-1 right-1 bg-black/80 backdrop-blur-sm text-white text-xs px-1 py-0.5 rounded-full border border-white/20">
+                                        <span class="flex items-center space-x-0.5">
+                                            <span class="text-yellow-400 text-xs">★</span>
+                                            <span class="font-medium text-xs">{{ movie.vote_average.toFixed(1) }}</span>
+                                        </span>
+                                    </div>
                                 </div>
                                 
-                                <!-- Titre du film avec style moderne -->
-                                <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
-                                    <div class="bg-black/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-full whitespace-nowrap border border-white/20 shadow-lg max-w-28">
-                                        <span class="truncate block">{{ movie.title || movie.name }}</span>
-                                    </div>
+                                <!-- Titre du film sous la miniature -->
+                                <div class="mt-1 text-center">
+                                    <p class="text-white text-xs font-medium truncate px-1 max-w-16 sm:max-w-18">
+                                        {{ movie.title || movie.name }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
