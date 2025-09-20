@@ -264,7 +264,7 @@
                     <!-- Titre des miniatures -->
                     <div class="text-center mb-4">
                         <h3 class="text-white/90 text-sm font-medium tracking-wider uppercase">Sélectionnez un film</h3>
-                        <div class="text-white/60 text-xs mt-1">Slide actuel: {{ activeSlideIndex }} / {{ movies.length - 1 }}</div>
+                        <div class="text-white/60 text-xs mt-1">Slide actuel: {{ activeSlideIndex + 1 }} / {{ movies.length }}</div>
                     </div>
                     
                     <!-- Conteneur des miniatures - prend toute la largeur -->
