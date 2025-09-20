@@ -227,11 +227,11 @@
                     
                     <!-- Contenu principal avec animation -->
                     <div class="absolute z-10 h-full w-full flex items-center">
-                        <div class="container mx-auto px-4 sm:px-6 lg:px-12">
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                        <div class="container mx-auto px-6 sm:px-6 lg:px-12">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
                                 
                                 <!-- Informations du film -->
-                                <div class="space-y-6 sm:space-y-8 animate-fade-in-up">
+                                <div class="space-y-4 sm:space-y-6 lg:space-y-8 animate-fade-in-up">
                                     <!-- Badge du film -->
                                     <div class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
                                         <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -239,50 +239,50 @@
                                     </div>
                                     
                                     <!-- Titre avec effet de texte -->
-                                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-tight">
+                                    <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-black text-white leading-tight">
                                         <span class="bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
                                             {{ movie.title || movie.name }}
                                         </span>
                                     </h1>
                                     
                                     <!-- Genres avec style moderne -->
-                                    <div class="flex flex-wrap gap-3">
+                                    <div class="flex flex-wrap gap-2 sm:gap-3">
                                         <span 
                                             v-for="(title, j) in getTitle(movie.genre_ids)" :key="j"
-                                            class="group relative overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                                            class="group relative overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 transition-all duration-300 hover:bg-white/20 hover:scale-105">
                                             <NuxtLink 
                                                 :to="{query: {type: type , name: title.name.toLowerCase()}, path:`/genres/${title.id}`}"
-                                                class="text-white text-sm font-medium relative z-10"
+                                                class="text-white text-xs sm:text-sm font-medium relative z-10"
                                                 role="link">{{ title.name }}</NuxtLink>
                                             <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                         </span>
                                     </div>
                                     
                                     <!-- Note avec style premium -->
-                                    <div class="flex items-center space-x-4">
-                                        <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
+                                    <div class="flex items-center space-x-3 sm:space-x-4">
+                                        <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 sm:px-4 sm:py-2 border border-white/20">
                                             <div class="flex">
                                                 <span v-for="star in 5" :key="star" 
                                                     :class="getStarClass(star, movie.vote_average)"
-                                                    class="text-lg">{{ getStarSymbol(star, movie.vote_average) }}</span>
+                                                    class="text-sm sm:text-lg">{{ getStarSymbol(star, movie.vote_average) }}</span>
                                             </div>
                                             <span class="text-white font-semibold">{{ movie.vote_average.toFixed(1) }}</span>
                                         </div>
-                                        <div class="text-white/70 text-sm">
+                                        <div class="text-white/70 text-xs sm:text-sm">
                                             Basé sur {{ movie.vote_count }} avis
                                         </div>
                                     </div>
                                     
                                     <!-- Description avec style élégant -->
-                                    <p class="text-white/90 text-base sm:text-lg leading-relaxed max-w-2xl">
-                                        {{ movie.overview.substring(0, 150) }}...
+                                    <p class="text-white/90 text-sm sm:text-base lg:text-lg leading-relaxed max-w-2xl">
+                                        {{ movie.overview.substring(0, 120) }}...
                                     </p>
                                     
                                     <!-- Boutons d'action -->
-                                    <div class="flex flex-col sm:flex-row gap-4">
+                                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                                         <NuxtLink 
                                             :to="`/${type}/${movie.id}`" 
-                                            class="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/25">
+                                            class="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/25">
                                             <span class="relative z-10 flex items-center space-x-2">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
@@ -292,7 +292,7 @@
                                             <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                         </NuxtLink>
                                         
-                                        <button class="group bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold py-4 px-8 rounded-full transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                                        <button class="group bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-full transition-all duration-300 hover:bg-white/20 hover:scale-105">
                                             <span class="flex items-center space-x-2">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -332,16 +332,16 @@
             
             <!-- Miniatures (Thumbs) avec design moderne -->
             <div class="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/95 via-black/80">
-                <div class="container-2xl mx-auto px-4 pt-6 pb-10">
+                <div class="container-2xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-6 sm:pb-10">
                     <!-- Titre des miniatures -->
-                    <div class="text-center mb-4">
-                        <h3 class="text-white/90 text-sm font-medium tracking-wider uppercase">Sélectionnez un film</h3>
+                    <div class="text-center mb-3 sm:mb-4">
+                        <h3 class="text-white/90 text-xs sm:text-sm font-medium tracking-wider uppercase">Sélectionnez un film</h3>
                     </div>
                     
                     <!-- Conteneur des miniatures avec navigation responsive -->
                     <div class="relative">
                         <!-- Navigation pour mobile/tablette -->
-                        <div class="flex justify-center items-center space-x-4 mb-4 lg:hidden">
+                        <div class="flex justify-center items-center space-x-4 mb-3 sm:mb-4 lg:hidden">
                             <!-- Bouton groupe précédent -->
                             <button 
                                 @click="goToPreviousGroup"
