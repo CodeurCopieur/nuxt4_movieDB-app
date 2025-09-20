@@ -10,7 +10,23 @@
     const activeSlideIndex = ref(0);
     const swiperInstance = ref(null);
     const startIndex = ref(0);
-    const itemsPerPage = ref(5); // 5 miniatures par ligne sur mobile/tablette
+    const itemsPerPage = ref(5); // 5 miniatures par ligne sur mobile/tablette, 10 sur desktop moyen
+    
+    // Fonction pour calculer le nombre d'éléments par page selon la taille d'écran
+    const getItemsPerPage = () => {
+        if (typeof window !== 'undefined') {
+            const width = window.innerWidth;
+            if (width >= 1600) return 20; // Toutes les miniatures sur très grands écrans
+            if (width >= 1024) return 10; // 10 miniatures sur desktop moyen
+            return 5; // 5 miniatures sur mobile/tablette
+        }
+        return 5;
+    };
+    
+    // Mettre à jour le nombre d'éléments par page
+    const updateItemsPerPage = () => {
+        itemsPerPage.value = getItemsPerPage();
+    };
     
     const getTitle = (arrayId) => {
         const filteredObjects = computed(() => genres.filter(obj => arrayId.includes(obj.id)));
@@ -136,6 +152,20 @@
     };
 
     onMounted(() => {
+        // Initialiser le nombre d'éléments par page
+        updateItemsPerPage();
+        
+        // Écouter le redimensionnement de la fenêtre
+        const handleResize = () => {
+            updateItemsPerPage();
+        };
+        window.addEventListener('resize', handleResize);
+        
+        // Nettoyer l'événement à la destruction du composant
+        onUnmounted(() => {
+            window.removeEventListener('resize', handleResize);
+        });
+        
         // Attendre que le DOM soit prêt
         nextTick(() => {
             // Délai plus long pour s'assurer que tout est chargé
@@ -246,7 +276,7 @@
                                     </h1>
                                     
                                     <!-- Genres avec style moderne -->
-                                    <div class="flex flex-wrap gap-2 sm:gap-3">
+                                    <div class="flex flex-wrap gap-2 sm:gap-3 hidden lg:flex">
                                         <span 
                                             v-for="(title, j) in getTitle(movie.genre_ids)" :key="j"
                                             class="group relative overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 transition-all duration-300 hover:bg-white/20 hover:scale-105">
@@ -259,7 +289,7 @@
                                     </div>
                                     
                                     <!-- Note avec style premium -->
-                                    <div class="flex items-center space-x-3 sm:space-x-4">
+                                    <div class="flex items-center space-x-3 sm:space-x-4 hidden lg:flex">
                                         <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 sm:px-4 sm:py-2 border border-white/20">
                                             <div class="flex">
                                                 <span v-for="star in 5" :key="star" 
@@ -274,7 +304,7 @@
                                     </div>
                                     
                                     <!-- Description avec style élégant -->
-                                    <p class="text-white/90 text-sm sm:text-base lg:text-lg leading-relaxed max-w-2xl">
+                                    <p class="text-white/90 text-sm sm:text-base lg:text-lg leading-relaxed max-w-2xl hidden lg:block">
                                         {{ movie.overview.substring(0, 120) }}...
                                     </p>
                                     
@@ -282,7 +312,7 @@
                                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                                         <NuxtLink 
                                             :to="`/${type}/${movie.id}`" 
-                                            class="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/25">
+                                            class="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-2.5 px-5 sm:py-3 sm:px-6 lg:py-4 lg:px-8 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/25">
                                             <span class="relative z-10 flex items-center space-x-2">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
@@ -292,7 +322,7 @@
                                             <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                         </NuxtLink>
                                         
-                                        <button class="group bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-full transition-all duration-300 hover:bg-white/20 hover:scale-105">
+                                        <button class="group bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold py-2.5 px-5 sm:py-3 sm:px-6 lg:py-4 lg:px-8 rounded-full transition-all duration-300 hover:bg-white/20 hover:scale-105">
                                             <span class="flex items-center space-x-2">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -340,8 +370,8 @@
                     
                     <!-- Conteneur des miniatures avec navigation responsive -->
                     <div class="relative">
-                        <!-- Navigation pour mobile/tablette -->
-                        <div class="flex justify-center items-center space-x-4 mb-3 sm:mb-4 lg:hidden">
+                        <!-- Navigation pour mobile/tablette/desktop moyen -->
+                        <div class="flex justify-center items-center space-x-4 mb-3 sm:mb-4 2xl:hidden">
                             <!-- Bouton groupe précédent -->
                             <button 
                                 @click="goToPreviousGroup"
@@ -364,8 +394,8 @@
                             </button>
                         </div>
 
-                        <!-- Miniatures sur desktop (toutes visibles) -->
-                        <div class="hidden lg:flex items-center space-x-2 justify-center">
+                        <!-- Miniatures sur desktop large (toutes visibles) -->
+                        <div class="hidden 2xl:flex items-center space-x-2 justify-center">
                             <div 
                                 v-for="(movie, index) in movies" 
                                 :key="index"
@@ -428,8 +458,8 @@
                             </div>
                         </div>
 
-                        <!-- Miniatures sur mobile/tablette (ligne de 5) -->
-                        <div class="lg:hidden flex items-center justify-center space-x-2 sm:space-x-3 px-2 sm:px-4">
+                        <!-- Miniatures sur mobile/tablette/desktop moyen (groupes de 5 ou 10) -->
+                        <div class="2xl:hidden flex items-center justify-center space-x-2 sm:space-x-3 px-2 sm:px-4">
                             <div 
                                 v-for="(movie, index) in visibleThumbs" 
                                 :key="index"
