@@ -1,11 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+// @ts-ignore - process.env est disponible au runtime dans Nuxt
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   
-  // Configuration pour Netlify avec SSR activé pour les API routes
+  // Configuration pour Vercel avec SSR activé pour les API routes
   nitro: {
-    preset: 'netlify',
+    preset: 'vercel',
     experimental: {
       wasm: false
     },
@@ -43,13 +44,12 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components', pathPrefix: false }
   ],
-  axios: {
-    proxy: true,
-  },
   runtimeConfig: {
     // Variables privées côté serveur uniquement
-    tmdbApiKey: process.env.TMDB_API_KEY || "your_default_api_key",
-    tmdbBaseURL: "https://api.themoviedb.org/3/",
+    // @ts-ignore - process.env est disponible au runtime dans Nuxt
+    tmdbApiKey: process.env.TMDB_API_KEY || '',
+    // @ts-ignore - process.env est disponible au runtime dans Nuxt
+    tmdbBaseURL: process.env.TMDB_BASE_URL || "https://api.themoviedb.org/3/",
     
     // Variables publiques côté client
     public: {
