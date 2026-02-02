@@ -38,32 +38,6 @@
         return movies.slice(startIndex.value, startIndex.value + itemsPerPage.value);
     });
 
-    // Fonctions de navigation pour mobile/tablette
-    const goToPreviousSlide = () => {
-        if (activeSlideIndex.value > 0) {
-            const newIndex = activeSlideIndex.value - 1;
-            goToSlide(newIndex);
-            
-            // Ajuster startIndex si nécessaire pour garder la miniature active visible
-            if (newIndex < startIndex.value) {
-                startIndex.value = Math.max(0, newIndex - (newIndex % 5));
-            }
-        }
-    };
-
-    const goToNextSlide = () => {
-        if (activeSlideIndex.value < movies.length - 1) {
-            const newIndex = activeSlideIndex.value + 1;
-            goToSlide(newIndex);
-            
-            // Ajuster startIndex si nécessaire pour garder la miniature active visible
-            const endIndex = startIndex.value + itemsPerPage.value - 1;
-            if (newIndex > endIndex) {
-                startIndex.value = Math.min(movies.length - itemsPerPage.value, newIndex - (newIndex % 5));
-            }
-        }
-    };
-
     // Fonctions pour naviguer par groupes de 5 avec boucle
     const goToPreviousGroup = () => {
         let newStartIndex = startIndex.value - itemsPerPage.value;
