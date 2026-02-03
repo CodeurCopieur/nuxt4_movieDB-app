@@ -75,10 +75,11 @@ export const useMoviesApi = () => {
   // === FONCTIONS API SÉCURISÉES ===
 
   // Films populaires
-  const getPopularMovies = async (page = 1) => {
+  const getPopularMovies = async (page = 1, options = {}) => {
+    const { type = 'movie' } = options;
     try {
       const response = await $fetch('/api/movies/popular', {
-        query: { page }
+        query: { page, type }
       });
       return response.results;
     } catch (error) {
@@ -101,10 +102,11 @@ export const useMoviesApi = () => {
   };
 
   // Films les mieux notés
-  const getTopRatedMovies = async (page = 1) => {
+  const getTopRatedMovies = async (page = 1, options = {}) => {
+    const { type = 'movie' } = options;
     try {
       const response = await $fetch('/api/movies/top-rated', {
-        query: { page }
+        query: { page, type }
       });
       return response.results;
     } catch (error) {
